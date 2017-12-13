@@ -7,12 +7,16 @@ package chatroom.server;
 
 import static chatroom.server.ChatroomServer.DELIMITER;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
-
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 /**
  *
  * @author kkapa
@@ -23,6 +27,9 @@ public class ClientHandler implements Runnable
        Socket sock;
        PrintWriter client;
        ChatroomServer parent;
+       //Tablenames and Column_names used in our custom database - defining constants
+       static final String USER_TAB="Users",LOGIN_COL="login",PASS_COL="pass",EMAIL_COL="email",ID_COL="user_ID";
+       //End defining
     public ClientHandler(Socket clientSocket, PrintWriter user, ChatroomServer par) 
        {
             parent=par;
@@ -34,7 +41,7 @@ public class ClientHandler implements Runnable
                 reader = new BufferedReader(isReader);
                 
             }
-            catch (Exception ex) 
+            catch (IOException ex) 
             {
                 parent.ServerTextAppend("Unexpected error... \n");
             }
@@ -66,56 +73,65 @@ public class ClientHandler implements Runnable
                                 break;
                             }
                         parent.statement=parent.conn.createStatement();
-                        parent.sql="SELECT max(\"user_ID\") FROM \"Users\"";
+                        parent.sql="SELECT max(\""+ID_COL+"\") FROM \""+USER_TAB+"\"";
                         ResultSet rs=parent.statement.executeQuery(parent.sql);
                         int new_id=0;
                         while(rs.next()) new_id=rs.getInt("max")+1;
                         System.out.println(new_id);
-                        
+                        String encoded=Encrypt(data[2]);
+                        //Test kodowania hasła według algorytmu SHA-256
+                        client.println("Error"+DELIMITER+encoded+DELIMITER);
+                        client.flush();
+                        /*int addUser=0;
+                        try{
+                            parent.statement=parent.conn.createStatement();
+                            addUser=parent.statement.executeUpdate("INSERT INTO \""+USER_TAB+"\" VALUES("+new_id+",'"+data[1]+"','"+encoded)
+                        }*/
                         
                         
                         }catch (NullPointerException npex){
-                            npex.printStackTrace();
                         }
                     } 
-                    /*
-                    else if (data[2].equals(disconnect)) 
-                    {
-                        tellEveryone((data[0] + ":has disconnected." + ":" + chat));
-                        userRemove(data[0]);
-                    } 
-                    else if (data[2].equals(chat)) 
-                    {
-                        tellEveryone(message);
-                    } 
-                    else 
-                    {
-                        ta_chat.append("No Conditions were met. \n");
-                    }*/
+                    
                 } 
              } 
-             catch (Exception ex) 
+             catch (IOException | SQLException ex) 
              {
                 /*parent.ServerTextAppend("Lost a connection. \n");
                 parent.clientOutputStreams.remove(client*/
-                 ex.printStackTrace();
              } 
             
 	} 
        private Boolean isEmailInUse(String email){
            try{
                parent.statement=parent.conn.createStatement();
-               parent.sql="SELECT * FROM \"Users\" WHERE \"email\" LIKE '"+email+"';";
+               parent.sql="SELECT * FROM \""+USER_TAB+"\" WHERE \""+EMAIL_COL+"\" LIKE '"+email+"';";
                System.out.println(parent.sql);
                ResultSet rs=parent.statement.executeQuery(parent.sql);
-               if(rs.next()) return true;
-               else return false;
-           }catch (Exception ex){
+               return rs.next();
+           }catch (SQLException ex){
                parent.ServerTextAppend("Nieoczekiwany błąd.\n");
-               ex.printStackTrace();
                return null;
            }
            
        }
+       private String Encrypt(String text){
+           String encoded="";
+           try{
+           MessageDigest digest = MessageDigest.getInstance("SHA-256");
+           byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
+           encoded = bytesToHex(hash);
+           }catch (NoSuchAlgorithmException naex){
+               parent.ServerTextAppend("Błąd w trakcie kodowania");
+           }
+           return encoded;
+           
+       }
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder result = new StringBuilder();
+        for (byte b : bytes) result.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
+        return result.toString();
+    }
+       
      }
 

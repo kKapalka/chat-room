@@ -5,7 +5,9 @@
  */
 package chatroom.server;
 
+import java.awt.Toolkit;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -29,7 +31,7 @@ public class ChatroomServer extends javax.swing.JFrame {
     ServerSocket serversocket;
     Socket clientsocket;
     
-    static final String DELIMITER=";end;";
+    static final String DELIMITER=";end;",LOGIN="postgres",PASS="poszlaoladoprzedszkola";
     
      
     
@@ -38,6 +40,7 @@ public class ChatroomServer extends javax.swing.JFrame {
      */
     public ChatroomServer() {
         initComponents();
+        setLocation((Toolkit.getDefaultToolkit().getScreenSize().width)/2 - getWidth()/2, (Toolkit.getDefaultToolkit().getScreenSize().height)/2 - getHeight()/2);
     }
 
     
@@ -133,23 +136,18 @@ public class ChatroomServer extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ChatroomServer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ChatroomServer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ChatroomServer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(ChatroomServer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
         //</editor-fold>
+        
+        //</editor-fold>
+        //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new ChatroomServer().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new ChatroomServer().setVisible(true);
         });
     }
 
@@ -179,7 +177,7 @@ public class ChatroomServer extends javax.swing.JFrame {
 				listener.start();
                 }
             }
-            catch (Exception ex)
+            catch (IOException ex)
             {
                 ServerText.append("Error making a connection. \n");
             }
@@ -189,11 +187,10 @@ public class ChatroomServer extends javax.swing.JFrame {
     public Boolean DbConnect(){
         try{
             System.out.println(Collections.list(DriverManager.getDrivers()));
-        conn = DriverManager.getConnection(url,"postgres","poszlaoladoprzedszkola");
+        conn = DriverManager.getConnection(url,LOGIN,PASS);
         ServerText.setText("Połączono z bazą: "+url+"\n");
         return true;
         }catch (SQLException sqlex){
-            sqlex.printStackTrace();
             ServerText.setText("Nie Połączono");
             return false;
         }

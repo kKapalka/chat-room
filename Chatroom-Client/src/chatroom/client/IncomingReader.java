@@ -5,6 +5,8 @@
  */
 package chatroom.client;
 
+import java.awt.HeadlessException;
+import java.io.IOException;
 import javax.swing.JOptionPane;
 
 /**
@@ -39,6 +41,6 @@ import javax.swing.JOptionPane;
                      } 
                      
                 }
-           }catch(Exception ex) { }
+           }catch(HeadlessException | IOException ex) { }
         }
     }
