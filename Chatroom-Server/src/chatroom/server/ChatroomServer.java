@@ -46,7 +46,10 @@ public class ChatroomServer extends javax.swing.JFrame {
      * Zmienna przechowująca listę klientów
      */
     ArrayList<String> users;
-    
+    /**
+     * Klasa służąca wyłącznie do przesyłania e-maili
+     */
+    static MailSender sender=new MailSender();
     /**
      * <p>Funkcja tworzy nowy formularz ChatroomServer, i wyśrodkowuje go na ekranie</p>
      * <p>Łączy się automatycznie z bazą danych i uruchamia wątek ServerStart zbierający
@@ -64,7 +67,7 @@ public class ChatroomServer extends javax.swing.JFrame {
         }
             Thread starter = new Thread(new ServerStart(this));
             starter.start();
-        
+            
     }
 
     /**

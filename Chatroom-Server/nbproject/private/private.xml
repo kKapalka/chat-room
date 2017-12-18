@@ -5,6 +5,7 @@
         <group>
             <file>file:/D:/chat-room/Chatroom-Server/src/chatroom/server/ClientHandler.java</file>
             <file>file:/D:/chat-room/Chatroom-Server/src/chatroom/server/ServerStart.java</file>
+            <file>file:/D:/chat-room/Chatroom-Server/src/chatroom/server/MailSender.java</file>
             <file>file:/D:/chat-room/Chatroom-Server/src/chatroom/server/ChatroomServer.java</file>
         </group>
     </open-files>

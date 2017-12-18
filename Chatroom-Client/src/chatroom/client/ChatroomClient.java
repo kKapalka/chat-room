@@ -91,7 +91,7 @@ public class ChatroomClient extends javax.swing.JFrame {
                 } finally{
                     break;
                 }
-            case "Register":
+            case "Register": case "Verify":
                 try{
                     Connect();
                 } catch(IOException ex){
@@ -111,6 +111,7 @@ public class ChatroomClient extends javax.swing.JFrame {
                 }finally{
                     break;
                 }
+               
         }
         if(server.isConnected()){
             writer.println(data);
@@ -172,7 +173,16 @@ public class ChatroomClient extends javax.swing.JFrame {
             });
         });
     }
-
+/**
+ * Funkcja jest używana tylko na potrzeby gładkiego powrotu użytkownika do panelu logowania.
+ * <p> Gdy serwer stwierdzi w trakcie logowania, że login jest zajęty, to panel rejestracji
+ * powinien się zamknąć. W tym celu klasa IncomingReader musi przechwycić odnośnik do prywatnego
+ * elementu klasy ChatroomClient
+ * @return odnośnik do panelu logowania
+ */
+public LoginPanel getLoginPanel(){
+    return this.loginPanel1;
+}
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private chatroom.client.ChatPanel chatPanel2;

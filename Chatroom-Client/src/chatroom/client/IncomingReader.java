@@ -30,17 +30,27 @@ import javax.swing.JOptionPane;
             {
                 while ((stream = parent.reader.readLine()) != null) 
                 {
-                    System.out.println(stream);
+                    
                      data = stream.split(DELIMITER);
 
                      switch (data[0]) 
                      {
                          case "Error":
                             JOptionPane.showMessageDialog(parent,
+                            data[2],
                             data[1],
-                            "DC_ERROR",
                             JOptionPane.ERROR_MESSAGE);
+                            if("LOGININUSE".equals(data[1])){
+                                System.out.println("debug");
+                                parent.getLoginPanel().dialog.dispose();
+                            }
                             break;
+                         case "Info":
+                            JOptionPane.showMessageDialog(parent,
+                            data[2],
+                            data[1],
+                            JOptionPane.INFORMATION_MESSAGE);
+                                    
                      } 
                      
                 }
