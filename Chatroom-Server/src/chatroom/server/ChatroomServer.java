@@ -50,24 +50,23 @@ public class ChatroomServer extends javax.swing.JFrame {
     /**
      * <p>Funkcja tworzy nowy formularz ChatroomServer, i wyśrodkowuje go na ekranie</p>
      * <p>Łączy się automatycznie z bazą danych i uruchamia wątek ServerStart zbierający
-     * połączenia od użytkowników, lub informuje administratora o błędzie połączenia z bazą</p>
+     * połączenia od użytkowników, lub informuje administratora o błędzie połączenia z bazą.
+     * Jeśli połączenie się uda, guzik łączenia ręcznego się zdezaktywuje.</p>
      */
     public ChatroomServer() {
         initComponents();
         setLocation((Toolkit.getDefaultToolkit().getScreenSize().width)/2 - getWidth()/2, (Toolkit.getDefaultToolkit().getScreenSize().height)/2 - getHeight()/2);
         try{
-        DbConnect();    
+        DbConnect();
+        Launch.setEnabled(false);
         }catch (SQLException ex){
-            ServerText.setText("Nie połączono z bazą. "+ex.getErrorCode() +"\nPołącz manualnie");
-            ex.printStackTrace();
+            ServerText.setText("Nie połączono z bazą.\nPołącz manualnie.");
         }
             Thread starter = new Thread(new ServerStart(this));
             starter.start();
         
     }
 
-    
-    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -138,16 +137,16 @@ public class ChatroomServer extends javax.swing.JFrame {
     /**
      * <p>Służy do ręcznego połączenia z bazą danych oraz uruchomienia serwera,
      * jeżeli automatyczne połączenie się nie uda - mechanizm fail-safe.</p>
-     * <p>Po połączeniu z bazą uruchamiany jest wątek SerwerStart, zbierający
-     * połączenia od użytkowników.</p>
+     * <p>Jeżeli połączenie się uda, guzik się zdezaktywuje. Po połączeniu z bazą 
+     * uruchamiany jest wątek SerwerStart, zbierający połączenia od użytkowników.</p>
      * @param evt - nasłuchuje naciśnięcia guzika "Połącz manualnie"
      */
     private void LaunchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LaunchActionPerformed
         try{
-        DbConnect();   
+        DbConnect();
+        Launch.setEnabled(false);
         }catch (SQLException ex){
-            ServerText.setText("Nie połączono z bazą. "+ex.getErrorCode() +"\n");
-            ex.printStackTrace();
+            ServerText.setText("Nie połączono z bazą.\nSpróbuj ponownie później");
         }
 
             Thread starter = new Thread(new ServerStart(this));

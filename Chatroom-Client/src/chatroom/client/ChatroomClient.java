@@ -31,11 +31,9 @@ public class ChatroomClient extends javax.swing.JFrame {
     /**
      * Creates new form ChatroomClient
      */
-    public ChatroomClient() {
-        
+    public ChatroomClient() {  
         initComponents();
         setLocation((Toolkit.getDefaultToolkit().getScreenSize().width)/2 - getWidth()/2, (Toolkit.getDefaultToolkit().getScreenSize().height)/2 - getHeight()/2);
-   
     }
 
     /**
@@ -71,28 +69,48 @@ public class ChatroomClient extends javax.swing.JFrame {
         String[] temp=data.split(DELIMITER);
         switch(temp[0]){
             case "Login":
-                if(!Connect()) break;
-                SwitchPanels("Chat");
-                chatPanel2.setUserName(temp[1]);
-                break;
+                try{
+                    Connect();
+                    SwitchPanels("Chat");
+                    chatPanel2.setUserName(temp[1]);
+                } catch (IOException ex){
+                    ErrorMessage("CONN_ERROR","Nie udało się połączyć z serwerem");
+                } finally{
+                    break;
+                }
             case "Logout":
                 if(server.isConnected()){
                     writer.println(data);
                     writer.flush();
                 }
-                if(!Disconnect()) break;
-                SwitchPanels("Login");
-                break;
+                try{
+                    server.close();
+                    SwitchPanels("Login");
+                } catch (IOException ex){
+                    ErrorMessage("DC_ERROR","Nie udało się rozłączyć");
+                } finally{
+                    break;
+                }
             case "Register":
-                if(!Connect()) break;
-                break;
+                try{
+                    Connect();
+                } catch(IOException ex){
+                    ErrorMessage("CONN_ERROR","Nie udało się połączyć");
+                } finally{
+                    break;
+                }
             case "Disconnect":
                 if(server.isConnected()){
                     writer.println(data);
                     writer.flush();
                 }
-                if(!Disconnect());
-                break;
+                try{
+                    server.close();
+                }catch(IOException ex){
+                    ErrorMessage("DC_ERROR","Nie udało się rozłączyć");
+                }finally{
+                    break;
+                }
         }
         if(server.isConnected()){
             writer.println(data);
@@ -101,34 +119,20 @@ public class ChatroomClient extends javax.swing.JFrame {
         }
                 
     }
-    public Boolean Connect(){
-        try{
-            server=new Socket("localhost",2222);
-            InputStreamReader streamreader = new InputStreamReader(server.getInputStream());
-            reader = new BufferedReader(streamreader);
-            writer = new PrintWriter(server.getOutputStream());
-            return true;
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(this,
-            "Serwer obecnie nieaktywny. Spróbuj później",
-            "CONN_ERROR",
-            JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
+    public void Connect() throws IOException{
+        server=new Socket("localhost",2222);
+        InputStreamReader streamreader = new InputStreamReader(server.getInputStream());
+        reader = new BufferedReader(streamreader);
+        writer = new PrintWriter(server.getOutputStream());
     }
     
-    public Boolean Disconnect(){
-        try{
-            server.close();
-            return true;
-        }catch (IOException ex){
-            JOptionPane.showMessageDialog(this,
-            "Nie udało się rozłączyć",
-            "DC_ERROR",
+    public void ErrorMessage(String title, String message){
+        JOptionPane.showMessageDialog(this,
+            message,
+            title,
             JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
     }
+    
     private void Listen(){
         Thread IncomingReader = new Thread(new IncomingReader(this));
         IncomingReader.start();
@@ -137,7 +141,7 @@ public class ChatroomClient extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
+        /* Set the Windows look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
