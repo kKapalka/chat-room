@@ -6,41 +6,64 @@
 package chatroom.server;
 
 import java.awt.Toolkit;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collections;
+
 /**
- *
+ * 
  * @author kkapa
  */
 public class ChatroomServer extends javax.swing.JFrame {
-    ArrayList clientOutputStreams;
+    //database variables
+    /**
+     * Zmienna przechowująca zapytania do bazy danych
+     */
     Statement statement;
+    /**
+     * Zmienna przechowująca odnośnik do połączenia z bazą danych
+     */
     Connection conn;
-    String sql;
+    /**
+     * URL do bazy danych przechowującej informacje o czacie
+     */
     String url = "jdbc:postgresql://localhost:5432/chatroom-db";
-    ServerSocket serversocket;
-    Socket clientsocket;
-    
-    static final String DELIMITER=";end;",LOGIN="postgres",PASS="poszlaoladoprzedszkola";
-    
-     
+    /**
+     * Stała przechowująca znak stopu między kolejnymi fragmentami przesyłanej informacji
+     */
+    static final String DELIMITER=";end;";
+    /**
+     * Zmienna przechowująca dane właściciela bazy danych, w celu pomyślnego zalogowania się do niej
+     */
+    static final String LOGIN="postgres",PASS="poszlaoladoprzedszkola";
+    /**
+     * Zmienna przechowująca listę strumieni wyjścia do klientów
+     */
+    ArrayList clientOutputStreams;
+    /**
+     * Zmienna przechowująca listę klientów
+     */
+    ArrayList<String> users;
     
     /**
-     * Creates new form CServerFrame
+     * <p>Funkcja tworzy nowy formularz ChatroomServer, i wyśrodkowuje go na ekranie</p>
+     * <p>Łączy się automatycznie z bazą danych i uruchamia wątek ServerStart zbierający
+     * połączenia od użytkowników, lub informuje administratora o błędzie połączenia z bazą</p>
      */
     public ChatroomServer() {
         initComponents();
         setLocation((Toolkit.getDefaultToolkit().getScreenSize().width)/2 - getWidth()/2, (Toolkit.getDefaultToolkit().getScreenSize().height)/2 - getHeight()/2);
+        try{
+        DbConnect();    
+        }catch (SQLException ex){
+            ServerText.setText("Nie połączono z bazą. "+ex.getErrorCode() +"\nPołącz manualnie");
+            ex.printStackTrace();
+        }
+            Thread starter = new Thread(new ServerStart(this));
+            starter.start();
+        
     }
 
     
@@ -75,7 +98,7 @@ public class ChatroomServer extends javax.swing.JFrame {
         jScrollPane1.setViewportView(ServerText);
         ServerText.getAccessibleContext().setAccessibleParent(this);
 
-        Launch.setText("Uruchom");
+        Launch.setText("Uruchom ręcznie");
         Launch.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 LaunchActionPerformed(evt);
@@ -112,19 +135,31 @@ public class ChatroomServer extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    /**
+     * <p>Służy do ręcznego połączenia z bazą danych oraz uruchomienia serwera,
+     * jeżeli automatyczne połączenie się nie uda - mechanizm fail-safe.</p>
+     * <p>Po połączeniu z bazą uruchamiany jest wątek SerwerStart, zbierający
+     * połączenia od użytkowników.</p>
+     * @param evt - nasłuchuje naciśnięcia guzika "Połącz manualnie"
+     */
     private void LaunchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LaunchActionPerformed
-        if(!DbConnect()) return;
-        Thread starter = new Thread(new ServerStart(this));
-        starter.start();
-        
-        ServerText.append("Serwer sprawny...\n");
+        try{
+        DbConnect();   
+        }catch (SQLException ex){
+            ServerText.setText("Nie połączono z bazą. "+ex.getErrorCode() +"\n");
+            ex.printStackTrace();
+        }
+
+            Thread starter = new Thread(new ServerStart(this));
+            starter.start();
+
     }//GEN-LAST:event_LaunchActionPerformed
 
     /**
-     * @param args the command line arguments
+     * @param args Nieużywany
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
+        /* Set the Windows look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
@@ -151,51 +186,25 @@ public class ChatroomServer extends javax.swing.JFrame {
         });
     }
 
-    public class ServerStart implements Runnable 
-    {
-        ChatroomServer parent;
-        ServerStart(ChatroomServer par){
-            parent=par;
-        }
-        @Override
-        public void run() 
-        {
-            //clientOutputStreams = new ArrayList();
-            //users = new ArrayList();  
-
-            try 
-            {
-                
-                serversocket = new ServerSocket(2222);
-                while (true) 
-                {
-				clientsocket=serversocket.accept();
-				PrintWriter out =
-                                new PrintWriter(clientsocket.getOutputStream(), true);
-                                BufferedReader in = new BufferedReader(new InputStreamReader(clientsocket.getInputStream()));
-                                Thread listener = new Thread(new ClientHandler(clientsocket, out,parent));
-				listener.start();
-                }
-            }
-            catch (IOException ex)
-            {
-                ServerText.append("Error making a connection. \n");
-            }
-        }
-    }
+    /**
+     * <p>Funkcja służy do łączenia z bazą danych.</p><p>
+     * Wykorzystuje zmienne zadeklarowane wewnątrz programu: <b>URL, login, hasło</b>
+     * aby wykonać połączenie. Gdy to się uda, administrator jest o tym informowany.</p>
+     * <p>Funkcja stosowana jest w dwóch miejscach: w konstruktorze (automatyczne
+     * połączenie) oraz wewnątrz funkcji LaunchActionPerformed (manualne połączenie)</p>
+     * @throws SQLException jeżeli z jakiegokolwiek powodu połączenie się nie uda
+     */
     
-    public Boolean DbConnect(){
-        try{
-            System.out.println(Collections.list(DriverManager.getDrivers()));
+    private void DbConnect() throws SQLException{
         conn = DriverManager.getConnection(url,LOGIN,PASS);
-        ServerText.setText("Połączono z bazą: "+url+"\n");
-        return true;
-        }catch (SQLException sqlex){
-            ServerText.setText("Nie Połączono");
-            return false;
-        }
+        ServerText.setText("Połączono z bazą:\n"+url+"\n");
     }
-    
+    /**
+     * <p> Funkcja służy do podpinania tekstu do panelu administratora.<p>
+     * <p> Stosowana jest w klasach: ServerStart, ClientHandler, które nie mają
+     * dostępu do prywatnych elementów klasy ChatroomServer.</p>
+     * @param text - tekst do wyświetlenia na panelu administratora
+     */
     public void ServerTextAppend(String text){
         ServerText.append(text);
     }

@@ -92,7 +92,7 @@
     </Container>
     <Component class="javax.swing.JButton" name="Launch">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Uruchom"/>
+        <Property name="text" type="java.lang.String" value="Uruchom r&#x119;cznie"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="LaunchActionPerformed"/>

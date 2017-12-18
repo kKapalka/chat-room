@@ -64,6 +64,11 @@ public class RegisterDialog extends javax.swing.JDialog {
         });
 
         VerifyButton.setText("Zweryfikuj rejestrację");
+        VerifyButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                VerifyButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -121,6 +126,10 @@ public class RegisterDialog extends javax.swing.JDialog {
        Parent.SendData("Register"+DELIMITER+Parent.login+DELIMITER+Parent.pass+DELIMITER+EmailText.getText()+DELIMITER);
        InfoText.setText("Kod wyslano na e-mail: "+EmailText.getText());
     }//GEN-LAST:event_EmailButtonActionPerformed
+
+    private void VerifyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_VerifyButtonActionPerformed
+        Parent.SendData("Verify"+DELIMITER+Parent.login+DELIMITER+Parent.pass+DELIMITER+EmailText.getText()+DELIMITER+VerifyCodeText.getText()+DELIMITER);
+    }//GEN-LAST:event_VerifyButtonActionPerformed
 
     /**
      * @param args the command line arguments

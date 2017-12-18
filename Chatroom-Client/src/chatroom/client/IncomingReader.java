@@ -30,6 +30,7 @@ import javax.swing.JOptionPane;
             {
                 while ((stream = parent.reader.readLine()) != null) 
                 {
+                    System.out.println(stream);
                      data = stream.split(DELIMITER);
 
                      if (data[0].equals("Error")) 
