@@ -69,12 +69,12 @@ public class ClientHandler implements Runnable
                         case "Register":
                             try
                             {
-                                if(isEmailInUse(data[3]))
+                                if(ExistsIn(USER_TAB,new String[]{EMAIL_COL+".equal."+data[3]}))
                                 {
                                     SendToClient(String.join(DELIMITER,"Error","EMAILINUSE","Ktoś już używa tego adresu e-mail."));
                                     break;
                                 }
-                                else if(isLoginInUse(data[1])){
+                                else if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+".equal."+data[1]})){
                                     SendToClient(String.join(DELIMITER,"Error","LOGININUSE","Ten login już jest zajęty. Zmień login."));
                                     break;
                                 }
@@ -92,12 +92,12 @@ public class ClientHandler implements Runnable
                         case "Verify":
                             try{
                                 String encoded=Encrypt(data[2]);
-                                if(CredentialsCorrect(data[1],encoded,data[3])){
-                                    if(AlreadyVerified(data[1])){
+                                if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+".equal."+data[1],PASS_COL+".equal."+encoded,EMAIL_COL+".equal."+data[3]})){
+                                    if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+".equal."+data[1],VER_COL+".equal."+"t"})){
                                         SendToClient("Info","ALREADY_DONE","Klient o takich danych był już zarejestrowany.");  
                                     }
-                                    else if(CheckVerifyCode(data[1],data[4])){
-                                        int updated=update("UPDATE \""+USER_TAB+"\" set \""+VER_COL+"\"=true where \""+LOGIN_COL+"\" LIKE '"+data[1]+"';");
+                                    else if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+".equal."+data[1],CODE_COL+".equal."+data[4]})){
+                                        int updated=newupdate("Update",new String[]{"\""+VER_COL+"\"=true"},USER_TAB,new String[]{LOGIN_COL+".equal."+data[1]});
                                         if(updated==1) SendToClient("Info","VER_SUCCESS","Weryfikacja zakończona sukcesem. Można się zalogować.");
                                     } else{
                                         SendToClient("Error","CODE_INVALID","Błędny kod weryfikacyjny. Sprawdź swoją skrzynkę pocztową.");
@@ -132,34 +132,7 @@ public class ClientHandler implements Runnable
              } 
             
         } 
-       /**
-        * Funkcja wysyła zapytanie do bazy:
-        * <p> Wybierz z tablicy gdzie email jest zgodny z emailem podanym w funkcji</p>
-        * @param email - email do sprawdzenia, czy istnieje już w bazie danych
-        * @return true, jeżeli zestaw wyników zapytania SQL-owego nie jest pusty, false - w przeciwnym wypadku
-        * @throws SQLException - jeżeli nastąpi błąd połączenia z bazą danych
-        */
-       private Boolean isEmailInUse(String email) throws SQLException{
-               ResultSet rs=query("SELECT * FROM \""+USER_TAB+"\" WHERE \""+EMAIL_COL+"\" LIKE '"+email+"';");
-               return rs.next();
-       }
-       /**
-        * Funkcja wysyła zapytanie do bazy:
-        * <p> Wybierz z tablicy gdzie login jest zgodny z loginem podanym w funkcji</p>
-        * @param login - login do sprawdzenia, czy istnieje już w bazie danych
-        * @return true, jeżeli zestaw wyników zapytania SQL-owego nie jest pusty, false - w przeciwnym wypadku
-        * @throws SQLException - jeżeli nastąpi błąd połączenia z bazą danych
-        */
-       private Boolean isLoginInUse(String login) throws SQLException{
-           ResultSet rs=query("SELECT * from \""+USER_TAB+"\" WHERE \""+LOGIN_COL+"\" LIKE '"+login+"';");
-           return rs.next();
-       }
-       /**
-        * Funkcja szyfruje podany do niej tekst algorytmem SHA256
-        * @param text - tekst do zaszyfrowania
-        * @return 32-bajtowy hash-code zastępujący tekst
-        * @throws NoSuchAlgorithmException - gdy program stwierdzi, że taki algorytm nie istnieje
-        */
+      
        private String Encrypt(String text) throws NoSuchAlgorithmException{
            MessageDigest digest = MessageDigest.getInstance("SHA-256");
            byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
@@ -171,24 +144,7 @@ public class ClientHandler implements Runnable
         for (byte b : bytes) result.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
         return result.toString();
     }
-    private Boolean CredentialsCorrect( String login, String pass, String email) throws SQLException{
-        ResultSet rs=query("SELECT * from \""+USER_TAB+"\" WHERE \""+LOGIN_COL+"\" LIKE '"+login+"'"
-                + " and \""+PASS_COL+"\" LIKE '"+pass+"'and \""+EMAIL_COL+"\" LIKE '"+email+"';");
-        return rs.next();
-    }
     
-    private Boolean CheckVerifyCode(String login, String code) throws SQLException{
-        ResultSet rs=query("Select * from \""+USER_TAB+"\" WHERE\""+LOGIN_COL+"\"Like '"+login+"' and \""+CODE_COL+"\" LIKE '"+code+"';");
-        return rs.next();
-    }
-    private Boolean AlreadyVerified(String login) throws SQLException{
-        ResultSet rs=newquery("check",new String[]{},USER_TAB,new String[]{LOGIN_COL+".equal."+login});
-        String state="";
-        while (rs.next()){
-            state=rs.getString(6);
-        }
-        return ("t".equals(state));
-    }
     private Boolean ExistsIn(String table, String[] conditions) throws SQLException{
         ResultSet rs=newquery("check",new String[]{},table,conditions);
         return rs.next();
@@ -202,16 +158,7 @@ public class ClientHandler implements Runnable
         client.println(text);
         client.flush();
     }
-    private ResultSet query(String sql) throws SQLException{
-        parent.statement=parent.conn.createStatement();
-        ResultSet rs=parent.statement.executeQuery(sql);
-        return rs;
-    }
-    private int update(String sql) throws SQLException{
-        parent.statement=parent.conn.createStatement();
-        int updated=parent.statement.executeUpdate(sql);
-        return updated;
-    }
+    
     /**
      * 
      * @param type przyjmuje "Insert" - wstaw, "Delete"-usuń, "Update"-zaktualizuj
@@ -278,7 +225,7 @@ public class ClientHandler implements Runnable
                 sql+="SELECT ";
                 for(String temp:values){
                     if(!temp.equals(values[0])) sql+=", ";
-                    sql+="\""+temp+"\"";
+                    sql+=temp;
                 }
                 break;
         }
@@ -314,7 +261,7 @@ public class ClientHandler implements Runnable
         return datetime;
     }
     private int createNewId() throws SQLException{
-        ResultSet rs=query("SELECT max(\""+ID_COL+"\") FROM \""+USER_TAB+"\"");
+        ResultSet rs=newquery("Fetch",new String[]{"max(\""+ID_COL+"\""},USER_TAB,new String[]{});
         int new_id=0;
         while(rs.next()) new_id=rs.getInt("max")+1;
         return new_id;
