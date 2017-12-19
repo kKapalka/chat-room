@@ -6,8 +6,6 @@
 package chatroom.client;
 
 import java.awt.Frame;
-import java.awt.Window;
-import javax.swing.JFrame;
 
 /**
  *

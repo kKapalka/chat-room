@@ -25,9 +25,6 @@ public class ServerStart implements Runnable
         @Override
         public void run() 
         {
-            //clientOutputStreams = new ArrayList();
-            //users = new ArrayList();  
-
             try 
             {
                 

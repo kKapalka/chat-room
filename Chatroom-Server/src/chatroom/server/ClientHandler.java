@@ -17,8 +17,10 @@ import java.time.LocalDateTime;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 /**
  *
  * @author kkapa
@@ -69,17 +71,17 @@ public class ClientHandler implements Runnable
                             {
                                 if(isEmailInUse(data[3]))
                                 {
-                                    SendToClient("Error"+DELIMITER+"EMAILINUSE"+DELIMITER+"Ktoś już używa tego adresu e-mail."+DELIMITER);
+                                    SendToClient(String.join(DELIMITER,"Error","EMAILINUSE","Ktoś już używa tego adresu e-mail."));
                                     break;
                                 }
                                 else if(isLoginInUse(data[1])){
-                                    SendToClient("Error"+DELIMITER+"LOGININUSE"+DELIMITER+"Ten login już jest zajęty. Zmień login."+DELIMITER);
+                                    SendToClient(String.join(DELIMITER,"Error","LOGININUSE","Ten login już jest zajęty. Zmień login."));
                                     break;
                                 }
                                 int new_id=createNewId();
                                 String encoded=Encrypt(data[2]);
                                 String verifyCode=randomVerifyCode();
-                                int addUser=update("INSERT INTO \""+USER_TAB+"\" VALUES("+new_id+",'"+encoded+"','"+data[1]+"','"+verifyCode+"','"+data[3]+"',false);");
+                                int addUser=InsertTo(USER_TAB, new String[]{""+new_id,encoded,data[1],verifyCode,data[3],"false"});
                                 parent.sender.Send(data[3],verifyCode);
                             }
                             catch (NullPointerException|NoSuchAlgorithmException ex)
@@ -92,21 +94,34 @@ public class ClientHandler implements Runnable
                                 String encoded=Encrypt(data[2]);
                                 if(CredentialsCorrect(data[1],encoded,data[3])){
                                     if(AlreadyVerified(data[1])){
-                                        SendToClient("Info"+DELIMITER+"ALREADY_DONE"+DELIMITER+"Klient o takich danych był już zarejestrowany."+DELIMITER);  
+                                        SendToClient("Info","ALREADY_DONE","Klient o takich danych był już zarejestrowany.");  
                                     }
                                     else if(CheckVerifyCode(data[1],data[4])){
                                         int updated=update("UPDATE \""+USER_TAB+"\" set \""+VER_COL+"\"=true where \""+LOGIN_COL+"\" LIKE '"+data[1]+"';");
-                                        if(updated==1) SendToClient("Info"+DELIMITER+"VER_SUCCESS"+DELIMITER+"Weryfikacja zakończona sukcesem. Można się zalogować."+DELIMITER);
+                                        if(updated==1) SendToClient("Info","VER_SUCCESS","Weryfikacja zakończona sukcesem. Można się zalogować.");
                                     } else{
-                                        SendToClient("Error"+DELIMITER+"CODE_INVALID"+DELIMITER+"Błędny kod weryfikacyjny. Sprawdź swoją skrzynkę pocztową.");
+                                        SendToClient("Error","CODE_INVALID","Błędny kod weryfikacyjny. Sprawdź swoją skrzynkę pocztową.");
                                     }
                                 }
-                                else SendToClient("Error"+DELIMITER+"CRED_INVALID"+DELIMITER+"Nie istnieje klient z takimi danymi");
+                                else SendToClient("Error","CRED_INVALID","Nie istnieje klient z takimi danymi");
                             } catch(NoSuchAlgorithmException |SQLException ex){
                                 ex.printStackTrace();
                             }
-                            
+                            break;
+                        case "Login":
+                            try{
+                                String encoded=Encrypt(data[2]);
+                                if(!ExistsIn(USER_TAB,new String[]{LOGIN_COL+".equal."+data[1],PASS_COL+".equal."+encoded})){
+                                    SendToClient("Login");
+                                    
+                                }else{
+                                    SendToClient("Error","USER_INVALID","Nieprawidłowe dane logowania");
+                                }
+                            } catch (NoSuchAlgorithmException |SQLException ex) {
+                               parent.ServerTextAppend("Niespodziany");
+                            }
                         }
+                    
                     
                 } 
              } 
@@ -161,20 +176,29 @@ public class ClientHandler implements Runnable
                 + " and \""+PASS_COL+"\" LIKE '"+pass+"'and \""+EMAIL_COL+"\" LIKE '"+email+"';");
         return rs.next();
     }
+    
     private Boolean CheckVerifyCode(String login, String code) throws SQLException{
         ResultSet rs=query("Select * from \""+USER_TAB+"\" WHERE\""+LOGIN_COL+"\"Like '"+login+"' and \""+CODE_COL+"\" LIKE '"+code+"';");
         return rs.next();
     }
     private Boolean AlreadyVerified(String login) throws SQLException{
-        ResultSet rs=query("Select * from \""+USER_TAB+"\" WHERE\""+LOGIN_COL+"\"Like '"+login+"';");
+        ResultSet rs=newquery("check",new String[]{},USER_TAB,new String[]{LOGIN_COL+".equal."+login});
         String state="";
         while (rs.next()){
-            System.out.println(rs.getString(6));
             state=rs.getString(6);
         }
         return ("t".equals(state));
     }
-    public void SendToClient(String text){
+    private Boolean ExistsIn(String table, String[] conditions) throws SQLException{
+        ResultSet rs=newquery("check",new String[]{},table,conditions);
+        return rs.next();
+    }
+    private int InsertTo(String table, String[] values) throws SQLException{
+        int rs=newupdate("Insert",values,table,new String[]{});
+        return rs;
+    }
+    public void SendToClient(CharSequence... elements){
+        String text=String.join(DELIMITER, elements);
         client.println(text);
         client.flush();
     }
@@ -188,6 +212,98 @@ public class ClientHandler implements Runnable
         int updated=parent.statement.executeUpdate(sql);
         return updated;
     }
+    /**
+     * 
+     * @param type przyjmuje "Insert" - wstaw, "Delete"-usuń, "Update"-zaktualizuj
+     * @param values - tabela wartości do wstawienia lub zmienienia
+     * @param table - tablica bazy danych do zmodyfikowania
+     * @param conditions - warunki, zapisane formatem "Kolumna.equal.Wartość"
+     * @return ilość zmodyfikowanych wierszy
+     * @throws SQLException jeżeli wystąpi błąd z połączeniem z bazą danych
+     */
+    private int newupdate(String type, String[] values, String table, String[] conditions) throws SQLException{
+        parent.statement=parent.conn.createStatement();
+        String sql="";
+        switch(type){
+            case "Insert":
+                sql+="INSERT INTO \""+table+"\" VALUES (";
+                for(String temp:values){
+                    if(temp!=values[0]) sql+=", ";
+                    try{
+                        sql+=""+Integer.parseInt(temp);
+                    }catch (NumberFormatException ex){
+                        if (temp=="true" ||temp=="false") sql+=""+temp;
+                        else sql+="'"+temp+"'";
+                    }
+                }
+                sql+=");";
+                int rs=parent.statement.executeUpdate(sql);
+                return rs;
+                
+            case "Delete":
+                sql+="DELETE FROM \""+table+"\" WHERE ";
+                break;
+            case "Update":
+                sql+="UPDATE \""+table+"\" SET ";
+                for(String temp:values){
+                    if(temp!=values[0]) sql+=", ";
+                    sql+=temp;
+                }
+                sql+=" WHERE ";
+                break;
+        }
+        for(String temp:conditions){
+            if(!temp.equals(conditions[0])) sql+=" AND ";  
+                String[] data=temp.split(Pattern.quote("."));
+                System.out.println(Arrays.toString(data));
+                sql+="\""+data[0]+"\"";
+                switch(data[1]){
+                    case "equal":
+                        sql+=" LIKE ";
+                        break;
+                }
+                sql+="'"+data[2]+"'";
+            }
+            sql+=";";
+            int rs=parent.statement.executeUpdate(sql);
+            return rs;
+    }
+    private ResultSet newquery(String type, String[] values, String table, String[] conditions) throws SQLException{
+        String sql="";
+        switch(type){
+            case "Check":
+                sql+="SELECT *";
+                break;
+            case "Fetch":
+                sql+="SELECT ";
+                for(String temp:values){
+                    if(!temp.equals(values[0])) sql+=", ";
+                    sql+="\""+temp+"\"";
+                }
+                break;
+        }
+        sql+=" FROM \""+table+"\" WHERE ";
+        System.out.println(Arrays.toString(conditions));
+        for(String temp:conditions){
+            
+            if(!temp.equals(conditions[0])) sql+=" AND ";  
+            String[] data=temp.split(Pattern.quote("."));
+            System.out.println(Arrays.toString(data));
+            sql+="\""+data[0]+"\"";
+            switch(data[1]){
+                case "equal":
+                    sql+=" LIKE ";
+                    break;
+            }
+            sql+="'"+data[2]+"'";
+        }
+        sql+=";";
+        parent.statement=parent.conn.createStatement();
+        ResultSet rs=parent.statement.executeQuery(sql);
+        return rs;
+    }
+    
+    
     private String randomVerifyCode(){
         return Long.toHexString(Double.doubleToLongBits(Math.random())).substring(4,14);
     }
