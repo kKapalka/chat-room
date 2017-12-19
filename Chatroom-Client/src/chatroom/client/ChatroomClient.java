@@ -168,7 +168,7 @@ public class ChatroomClient extends javax.swing.JFrame {
             client.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent evt) {
-                    if(client.server.isConnected())client.SendData("Disconnect"+DELIMITER+client.login+DELIMITER);
+                    if(client.server.isConnected())client.SendData("Disconnect"+DELIMITER+(client.login==null?client.login:"anon")+DELIMITER);
                 }
             });
         });

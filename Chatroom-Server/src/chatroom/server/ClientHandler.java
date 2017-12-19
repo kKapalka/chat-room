@@ -64,25 +64,28 @@ public class ClientHandler implements Runnable
                     parent.ServerTextAppend("Otrzymano: " + message + "\n");
                     String curDate=getDate();
                     data = message.split(DELIMITER);
-
+System.out.println("debug");
                     switch(data[0]){
                         case "Register":
+                            System.out.println("debug");
                             try
                             {
-                                if(ExistsIn(USER_TAB,new String[]{EMAIL_COL+".equal."+data[3]}))
+                                if(ExistsIn(USER_TAB,new String[]{EMAIL_COL+"..equal.."+data[3]}))
                                 {
                                     SendToClient(String.join(DELIMITER,"Error","EMAILINUSE","Ktoś już używa tego adresu e-mail."));
                                     break;
                                 }
-                                else if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+".equal."+data[1]})){
+                                else if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+"..equal.."+data[1]})){
                                     SendToClient(String.join(DELIMITER,"Error","LOGININUSE","Ten login już jest zajęty. Zmień login."));
                                     break;
                                 }
+                                System.out.println("debug");
                                 int new_id=createNewId();
                                 String encoded=Encrypt(data[2]);
                                 String verifyCode=randomVerifyCode();
                                 int addUser=InsertTo(USER_TAB, new String[]{""+new_id,encoded,data[1],verifyCode,data[3],"false"});
-                                parent.sender.Send(data[3],verifyCode);
+                                System.out.println("debug");
+                                //parent.sender.Send(data[3],verifyCode);
                             }
                             catch (NullPointerException|NoSuchAlgorithmException ex)
                             {
@@ -92,12 +95,12 @@ public class ClientHandler implements Runnable
                         case "Verify":
                             try{
                                 String encoded=Encrypt(data[2]);
-                                if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+".equal."+data[1],PASS_COL+".equal."+encoded,EMAIL_COL+".equal."+data[3]})){
-                                    if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+".equal."+data[1],VER_COL+".equal."+"t"})){
+                                if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+"..equal.."+data[1],PASS_COL+"..equal.."+encoded,EMAIL_COL+"..equal.."+data[3]})){
+                                    if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+"..equal.."+data[1],VER_COL+"..bool.."+"true"})){
                                         SendToClient("Info","ALREADY_DONE","Klient o takich danych był już zarejestrowany.");  
                                     }
-                                    else if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+".equal."+data[1],CODE_COL+".equal."+data[4]})){
-                                        int updated=newupdate("Update",new String[]{"\""+VER_COL+"\"=true"},USER_TAB,new String[]{LOGIN_COL+".equal."+data[1]});
+                                    else if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+"..equal.."+data[1],CODE_COL+"..equal.."+data[4]})){
+                                        int updated=newupdate("Update",new String[]{"\""+VER_COL+"\"=true"},USER_TAB,new String[]{LOGIN_COL+"..equal.."+data[1]});
                                         if(updated==1) SendToClient("Info","VER_SUCCESS","Weryfikacja zakończona sukcesem. Można się zalogować.");
                                     } else{
                                         SendToClient("Error","CODE_INVALID","Błędny kod weryfikacyjny. Sprawdź swoją skrzynkę pocztową.");
@@ -111,7 +114,7 @@ public class ClientHandler implements Runnable
                         case "Login":
                             try{
                                 String encoded=Encrypt(data[2]);
-                                if(!ExistsIn(USER_TAB,new String[]{LOGIN_COL+".equal."+data[1],PASS_COL+".equal."+encoded})){
+                                if(!ExistsIn(USER_TAB,new String[]{LOGIN_COL+"..equal.."+data[1],PASS_COL+"..equal.."+encoded})){
                                     SendToClient("Login");
                                     
                                 }else{
@@ -127,6 +130,7 @@ public class ClientHandler implements Runnable
              } 
              catch (IOException | SQLException ex) 
              {
+                 ex.printStackTrace();
                 /*parent.ServerTextAppend("Lost a connection. \n");
                 parent.clientOutputStreams.remove(client*/
              } 
@@ -146,11 +150,12 @@ public class ClientHandler implements Runnable
     }
     
     private Boolean ExistsIn(String table, String[] conditions) throws SQLException{
-        ResultSet rs=newquery("check",new String[]{},table,conditions);
+        ResultSet rs=newquery("Check",new String[]{},table,conditions);
         return rs.next();
     }
     private int InsertTo(String table, String[] values) throws SQLException{
         int rs=newupdate("Insert",values,table,new String[]{});
+        System.out.println("debug");
         return rs;
     }
     public void SendToClient(CharSequence... elements){
@@ -164,13 +169,14 @@ public class ClientHandler implements Runnable
      * @param type przyjmuje "Insert" - wstaw, "Delete"-usuń, "Update"-zaktualizuj
      * @param values - tabela wartości do wstawienia lub zmienienia
      * @param table - tablica bazy danych do zmodyfikowania
-     * @param conditions - warunki, zapisane formatem "Kolumna.equal.Wartość"
+     * @param conditions - warunki, zapisane formatem "Kolumna..equal..Wartość"
      * @return ilość zmodyfikowanych wierszy
      * @throws SQLException jeżeli wystąpi błąd z połączeniem z bazą danych
      */
     private int newupdate(String type, String[] values, String table, String[] conditions) throws SQLException{
         parent.statement=parent.conn.createStatement();
         String sql="";
+        System.out.println("debug");
         switch(type){
             case "Insert":
                 sql+="INSERT INTO \""+table+"\" VALUES (";
@@ -181,7 +187,9 @@ public class ClientHandler implements Runnable
                     }catch (NumberFormatException ex){
                         if (temp=="true" ||temp=="false") sql+=""+temp;
                         else sql+="'"+temp+"'";
+                        
                     }
+                    finally{System.out.println("debug");}
                 }
                 sql+=");";
                 int rs=parent.statement.executeUpdate(sql);
@@ -201,7 +209,7 @@ public class ClientHandler implements Runnable
         }
         for(String temp:conditions){
             if(!temp.equals(conditions[0])) sql+=" AND ";  
-                String[] data=temp.split(Pattern.quote("."));
+                String[] data=temp.split(Pattern.quote(".."));
                 System.out.println(Arrays.toString(data));
                 sql+="\""+data[0]+"\"";
                 switch(data[1]){
@@ -229,23 +237,29 @@ public class ClientHandler implements Runnable
                 }
                 break;
         }
-        sql+=" FROM \""+table+"\" WHERE ";
-        System.out.println(Arrays.toString(conditions));
-        for(String temp:conditions){
-            
-            if(!temp.equals(conditions[0])) sql+=" AND ";  
-            String[] data=temp.split(Pattern.quote("."));
-            System.out.println(Arrays.toString(data));
-            sql+="\""+data[0]+"\"";
-            switch(data[1]){
-                case "equal":
-                    sql+=" LIKE ";
-                    break;
+        sql+=" FROM \""+table+"\"";
+        if(conditions.length>0){
+            sql+=" WHERE ";
+            System.out.println(Arrays.toString(conditions));
+            for(String temp:conditions){
+                if(!temp.equals(conditions[0])) sql+=" AND ";  
+                String[] data=temp.split(Pattern.quote(".."));
+                System.out.println(Arrays.toString(data));
+                sql+="\""+data[0]+"\"";
+                switch(data[1]){
+                    case "equal":
+                        sql+=" LIKE ";
+                        sql+="'"+data[2]+"'";
+                        break;
+                    case "bool":
+                        sql+="="+data[2];
+                }
+                
             }
-            sql+="'"+data[2]+"'";
         }
         sql+=";";
         parent.statement=parent.conn.createStatement();
+        System.out.println(sql);
         ResultSet rs=parent.statement.executeQuery(sql);
         return rs;
     }
@@ -261,7 +275,7 @@ public class ClientHandler implements Runnable
         return datetime;
     }
     private int createNewId() throws SQLException{
-        ResultSet rs=newquery("Fetch",new String[]{"max(\""+ID_COL+"\""},USER_TAB,new String[]{});
+        ResultSet rs=newquery("Fetch",new String[]{"max(\""+ID_COL+"\")"},USER_TAB,new String[]{});
         int new_id=0;
         while(rs.next()) new_id=rs.getInt("max")+1;
         return new_id;

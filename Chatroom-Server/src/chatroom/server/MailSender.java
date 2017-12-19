@@ -23,9 +23,9 @@ public class MailSender {
     String from,username,password;
     MailSender(){
       // Sender's email ID needs to be mentioned
-      from = "***************"; //change accordingly
-      username = "**************";//change accordingly
-      password = "*********";//change accordingly
+      from = "k.kapalka@hotmail.com"; //change accordingly
+      username = "k.kapalka@hotmail.com";//change accordingly
+      password = "Nin3Sp1r3S";//change accordingly
     }
     public void Send(String to, String code){
       Properties props = new Properties();
