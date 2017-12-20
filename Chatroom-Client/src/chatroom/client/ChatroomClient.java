@@ -65,7 +65,8 @@ public class ChatroomClient extends javax.swing.JFrame {
                 cards.show(getContentPane(), "card2");
         }
     }
-    public void SendData(String data){
+    public void SendData(CharSequence... tidbits){
+        String data=String.join(DELIMITER, tidbits);
         String[] temp=data.split(DELIMITER);
         switch(temp[0]){
             case "Login":

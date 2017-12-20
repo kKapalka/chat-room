@@ -23,20 +23,22 @@ public class MailSender {
     String from,username,password;
     MailSender(){
       // Sender's email ID needs to be mentioned
-      from = "k.kapalka@hotmail.com"; //change accordingly
-      username = "k.kapalka@hotmail.com";//change accordingly
-      password = "Nin3Sp1r3S";//change accordingly
+      from = "chatroom.pwsztar@gmail.com"; //change accordingly
+      username = "chatroom.pwsztar@gmail.com";//change accordingly
+      password = "poszlaoladoprzedszkola";//change accordingly
     }
     public void Send(String to, String code){
       Properties props = new Properties();
       props.put("mail.smtp.auth", "true");
       props.put("mail.smtp.starttls.enable", "true");
-      props.put("mail.smtp.host","smtp-mail.outlook.com");
+      props.put("mail.smtp.host","smtp.gmail.com");
       props.put("mail.smtp.port", "587");
+      //props.put("mail.smtp.ssl.enable", "true");
 
       // Get the Session object.
       Session session = Session.getInstance(props,
          new javax.mail.Authenticator() {
+            @Override
             protected PasswordAuthentication getPasswordAuthentication() {
                return new PasswordAuthentication(username, password);
 	   }
@@ -63,8 +65,6 @@ public class MailSender {
 
 	   // Send message
 	   Transport.send(message);
-
-	   System.out.println("Sent message successfully....");
 
       } catch (MessagingException e) {
          throw new RuntimeException(e);

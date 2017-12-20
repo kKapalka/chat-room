@@ -41,7 +41,6 @@ import javax.swing.JOptionPane;
                             data[1],
                             JOptionPane.ERROR_MESSAGE);
                             if("LOGININUSE".equals(data[1])){
-                                System.out.println("debug");
                                 parent.getLoginPanel().dialog.dispose();
                             }
                             break;
@@ -50,7 +49,9 @@ import javax.swing.JOptionPane;
                             data[2],
                             data[1],
                             JOptionPane.INFORMATION_MESSAGE);
-                                    
+                            if("VER_SUCCESS".equals(data[1])){
+                                parent.getLoginPanel().dialog.dispose();
+                            }    
                      } 
                      
                 }

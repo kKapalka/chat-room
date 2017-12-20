@@ -13,7 +13,6 @@ import java.awt.Frame;
  */
 public class LoginPanel extends javax.swing.JPanel {
     ChatroomClient client;
-    static final String DELIMITER=";end;";
     RegisterDialog dialog;
     /**
      * Creates new form LoginPanel
@@ -126,7 +125,7 @@ public class LoginPanel extends javax.swing.JPanel {
         client=(ChatroomClient)this.getTopLevelAncestor();
         client.login=LoginText.getText();
         client.pass=PassText.getText();
-        client.SendData("Login"+DELIMITER+client.login+DELIMITER+client.pass+DELIMITER);
+        client.SendData("Login",client.login,client.pass);
     }//GEN-LAST:event_LoginButtonActionPerformed
 
     private void RegisterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RegisterButtonActionPerformed

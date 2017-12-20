@@ -18,8 +18,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 /**
  *
@@ -47,8 +45,8 @@ public class ClientHandler implements Runnable
             }
             catch (IOException ex) 
             {
-                ex.printStackTrace();
-                parent.ServerTextAppend("Unexpected error... \n");
+                
+                parent.ServerTextAppend("Błąd podczas łączenia z klientem\n");
             }
        }
 
@@ -64,10 +62,10 @@ public class ClientHandler implements Runnable
                     parent.ServerTextAppend("Otrzymano: " + message + "\n");
                     String curDate=getDate();
                     data = message.split(DELIMITER);
-System.out.println("debug");
+
                     switch(data[0]){
                         case "Register":
-                            System.out.println("debug");
+                            
                             try
                             {
                                 if(ExistsIn(USER_TAB,new String[]{EMAIL_COL+"..equal.."+data[3]}))
@@ -79,17 +77,18 @@ System.out.println("debug");
                                     SendToClient(String.join(DELIMITER,"Error","LOGININUSE","Ten login już jest zajęty. Zmień login."));
                                     break;
                                 }
-                                System.out.println("debug");
+                                
                                 int new_id=createNewId();
                                 String encoded=Encrypt(data[2]);
                                 String verifyCode=randomVerifyCode();
                                 int addUser=InsertTo(USER_TAB, new String[]{""+new_id,encoded,data[1],verifyCode,data[3],"false"});
-                                System.out.println("debug");
-                                //parent.sender.Send(data[3],verifyCode);
+                                SendToClient("Info","CODE_SENT","Kod weryfikacyjny przesłano na e-mail: "+data[3]);
+                            
+                                parent.sender.Send(data[3],verifyCode);
                             }
                             catch (NullPointerException|NoSuchAlgorithmException ex)
                             {
-                                ex.printStackTrace();
+                                parent.ServerTextAppend("Błąd w sekwencji rejestracji\n");
                             }
                             break;
                         case "Verify":
@@ -108,7 +107,7 @@ System.out.println("debug");
                                 }
                                 else SendToClient("Error","CRED_INVALID","Nie istnieje klient z takimi danymi");
                             } catch(NoSuchAlgorithmException |SQLException ex){
-                                ex.printStackTrace();
+                                parent.ServerTextAppend("Błąd w sekwencji weryfikacji\n");
                             }
                             break;
                         case "Login":
@@ -121,7 +120,7 @@ System.out.println("debug");
                                     SendToClient("Error","USER_INVALID","Nieprawidłowe dane logowania");
                                 }
                             } catch (NoSuchAlgorithmException |SQLException ex) {
-                               parent.ServerTextAppend("Niespodziany");
+                               parent.ServerTextAppend("Błąd w sekwencji logowania\n");
                             }
                         }
                     
@@ -130,9 +129,9 @@ System.out.println("debug");
              } 
              catch (IOException | SQLException ex) 
              {
-                 ex.printStackTrace();
-                /*parent.ServerTextAppend("Lost a connection. \n");
-                parent.clientOutputStreams.remove(client*/
+                
+                parent.ServerTextAppend("Utracono połączenie. \n");
+                //parent.clientOutputStreams.remove(client*/
              } 
             
         } 
@@ -155,7 +154,6 @@ System.out.println("debug");
     }
     private int InsertTo(String table, String[] values) throws SQLException{
         int rs=newupdate("Insert",values,table,new String[]{});
-        System.out.println("debug");
         return rs;
     }
     public void SendToClient(CharSequence... elements){
@@ -176,20 +174,17 @@ System.out.println("debug");
     private int newupdate(String type, String[] values, String table, String[] conditions) throws SQLException{
         parent.statement=parent.conn.createStatement();
         String sql="";
-        System.out.println("debug");
         switch(type){
             case "Insert":
                 sql+="INSERT INTO \""+table+"\" VALUES (";
                 for(String temp:values){
-                    if(temp!=values[0]) sql+=", ";
+                    if(!temp.equals(values[0])) sql+=", ";
                     try{
                         sql+=""+Integer.parseInt(temp);
                     }catch (NumberFormatException ex){
-                        if (temp=="true" ||temp=="false") sql+=""+temp;
+                        if ("true".equals(temp) ||"false".equals(temp)) sql+=""+temp;
                         else sql+="'"+temp+"'";
-                        
                     }
-                    finally{System.out.println("debug");}
                 }
                 sql+=");";
                 int rs=parent.statement.executeUpdate(sql);
@@ -201,7 +196,7 @@ System.out.println("debug");
             case "Update":
                 sql+="UPDATE \""+table+"\" SET ";
                 for(String temp:values){
-                    if(temp!=values[0]) sql+=", ";
+                    if(!temp.equals(values[0])) sql+=", ";
                     sql+=temp;
                 }
                 sql+=" WHERE ";
@@ -210,7 +205,6 @@ System.out.println("debug");
         for(String temp:conditions){
             if(!temp.equals(conditions[0])) sql+=" AND ";  
                 String[] data=temp.split(Pattern.quote(".."));
-                System.out.println(Arrays.toString(data));
                 sql+="\""+data[0]+"\"";
                 switch(data[1]){
                     case "equal":
@@ -240,11 +234,9 @@ System.out.println("debug");
         sql+=" FROM \""+table+"\"";
         if(conditions.length>0){
             sql+=" WHERE ";
-            System.out.println(Arrays.toString(conditions));
             for(String temp:conditions){
                 if(!temp.equals(conditions[0])) sql+=" AND ";  
                 String[] data=temp.split(Pattern.quote(".."));
-                System.out.println(Arrays.toString(data));
                 sql+="\""+data[0]+"\"";
                 switch(data[1]){
                     case "equal":
@@ -259,7 +251,6 @@ System.out.println("debug");
         }
         sql+=";";
         parent.statement=parent.conn.createStatement();
-        System.out.println(sql);
         ResultSet rs=parent.statement.executeQuery(sql);
         return rs;
     }

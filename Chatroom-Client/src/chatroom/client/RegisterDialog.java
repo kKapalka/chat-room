@@ -13,9 +13,10 @@ import java.awt.Toolkit;
  */
 public class RegisterDialog extends javax.swing.JDialog {
     ChatroomClient Parent;
-    static final String DELIMITER=";end;";
     /**
      * Creates new form RegisterDialog
+     * @param parent
+     * @param modal
      */
     public RegisterDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
@@ -123,12 +124,12 @@ public class RegisterDialog extends javax.swing.JDialog {
 
     private void EmailButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_EmailButtonActionPerformed
        
-       Parent.SendData("Register"+DELIMITER+Parent.login+DELIMITER+Parent.pass+DELIMITER+EmailText.getText()+DELIMITER);
+       Parent.SendData("Register",Parent.login,Parent.pass,EmailText.getText());
        InfoText.setText("Kod wyslano na e-mail: "+EmailText.getText());
     }//GEN-LAST:event_EmailButtonActionPerformed
 
     private void VerifyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_VerifyButtonActionPerformed
-        Parent.SendData("Verify"+DELIMITER+Parent.login+DELIMITER+Parent.pass+DELIMITER+EmailText.getText()+DELIMITER+VerifyCodeText.getText()+DELIMITER);
+        Parent.SendData("Verify",Parent.login,Parent.pass,EmailText.getText(),VerifyCodeText.getText());
     }//GEN-LAST:event_VerifyButtonActionPerformed
 
     /**
