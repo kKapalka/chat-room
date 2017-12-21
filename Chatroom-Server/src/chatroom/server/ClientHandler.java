@@ -135,7 +135,7 @@ public class ClientHandler implements Runnable
                                parent.ServerTextAppend("Błąd w sekwencji logowania\n");
                             }
                             break;
-                        case "Logout":
+                        case "Logout": case "Disconnect":
                             SendToClient("Break");
                             parent.users.remove(data[1]);
                             parent.clientOutputStreams.remove(client);
