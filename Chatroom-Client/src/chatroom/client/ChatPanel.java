@@ -33,16 +33,22 @@ public class ChatPanel extends javax.swing.JPanel {
 
         jButton1 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTextPane1 = new javax.swing.JTextPane();
+        Chat = new javax.swing.JTextPane();
         MessageInput = new javax.swing.JTextField();
         SendButton = new javax.swing.JButton();
         Logout = new javax.swing.JButton();
 
         jButton1.setText("jButton1");
 
-        jScrollPane1.setViewportView(jTextPane1);
+        Chat.setEditable(false);
+        jScrollPane1.setViewportView(Chat);
 
         SendButton.setText("Wyślij");
+        SendButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SendButtonActionPerformed(evt);
+            }
+        });
 
         Logout.setText("^");
         Logout.addActionListener(new java.awt.event.ActionListener() {
@@ -82,13 +88,24 @@ public class ChatPanel extends javax.swing.JPanel {
         client.SendData("Logout"+DELIMITER+username+DELIMITER);
     }//GEN-LAST:event_LogoutActionPerformed
 
-
+    private void SendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SendButtonActionPerformed
+       client=(ChatroomClient)this.getTopLevelAncestor();
+        client.SendData("Message"+DELIMITER+username+DELIMITER+MessageInput.getText());
+       MessageInput.setText("");
+    }//GEN-LAST:event_SendButtonActionPerformed
+    public void TextAppend(String text){
+        Chat.setText(Chat.getText()+text+"\n");
+       Chat.setCaretPosition(Chat.getDocument().getLength());
+    }
+    public void Clear(){
+        Chat.setText("");
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextPane Chat;
     private javax.swing.JButton Logout;
     private javax.swing.JTextField MessageInput;
     private javax.swing.JButton SendButton;
     private javax.swing.JButton jButton1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextPane jTextPane1;
     // End of variables declaration//GEN-END:variables
 }

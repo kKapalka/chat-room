@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 
 /**
  *
@@ -27,7 +28,8 @@ public class ServerStart implements Runnable
         {
             try 
             {
-                
+                parent.clientOutputStreams=new ArrayList<>();
+                parent.users=new ArrayList<>();
                 ServerSocket serversocket = new ServerSocket(2222);
                 while (true) 
                 {

@@ -3,9 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/chat-room/Chatroom-Server/src/chatroom/server/ClientHandler.java</file>
             <file>file:/D:/chat-room/Chatroom-Server/src/chatroom/server/ServerStart.java</file>
-            <file>file:/D:/chat-room/Chatroom-Server/src/chatroom/server/MailSender.java</file>
+            <file>file:/D:/chat-room/Chatroom-Server/src/chatroom/server/ClientHandler.java</file>
             <file>file:/D:/chat-room/Chatroom-Server/src/chatroom/server/ChatroomServer.java</file>
         </group>
     </open-files>

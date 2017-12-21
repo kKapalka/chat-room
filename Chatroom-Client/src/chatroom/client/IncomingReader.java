@@ -51,7 +51,26 @@ import javax.swing.JOptionPane;
                             JOptionPane.INFORMATION_MESSAGE);
                             if("VER_SUCCESS".equals(data[1])){
                                 parent.getLoginPanel().dialog.dispose();
-                            }    
+                            } 
+                         case "Login":
+                             if (data.length==1)
+                             parent.SwitchPanels("Chat");
+                             break;
+                         case "Chat":
+                             String text="";
+                             for(String temp:data){
+                                 if (!data[0].equals(temp)){
+                                     if(!data[1].equals(temp))text+=":";
+                                     text+=""+temp;
+                                 }
+                             }
+                             parent.ChatTextAppend(text);
+                             break;
+                         case "Break":
+                             parent.IncomingReader.interrupt();
+                             parent.server.close();
+                             parent.SwitchPanels("Login");
+                             break;
                      } 
                      
                 }

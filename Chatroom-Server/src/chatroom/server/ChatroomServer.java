@@ -6,11 +6,14 @@
 package chatroom.server;
 
 import java.awt.Toolkit;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 /**
  * 
@@ -41,7 +44,7 @@ public class ChatroomServer extends javax.swing.JFrame {
     /**
      * Zmienna przechowująca listę strumieni wyjścia do klientów
      */
-    ArrayList clientOutputStreams;
+    ArrayList<PrintWriter> clientOutputStreams;
     /**
      * Zmienna przechowująca listę klientów
      */
@@ -50,6 +53,9 @@ public class ChatroomServer extends javax.swing.JFrame {
      * Klasa służąca wyłącznie do przesyłania e-maili
      */
     static MailSender sender=new MailSender();
+    
+    static final String MES_TAB="Messages",MES_ID_COL="message_id",MES_COL="message",TIME_COL="timestamp_sent",SEND_COL="user";
+       
     /**
      * <p>Funkcja tworzy nowy formularz ChatroomServer, i wyśrodkowuje go na ekranie</p>
      * <p>Łączy się automatycznie z bazą danych i uruchamia wątek ServerStart zbierający
@@ -79,26 +85,13 @@ public class ChatroomServer extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        ServerText = new javax.swing.JTextArea();
         Launch = new javax.swing.JButton();
         ClientList = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        ServerText = new javax.swing.JTextPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(385, 505));
-        setPreferredSize(new java.awt.Dimension(385, 505));
-
-        ServerText.setEditable(false);
-        ServerText.setColumns(20);
-        ServerText.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
-        ServerText.setLineWrap(true);
-        ServerText.setRows(5);
-        ServerText.setText("Serwer czeka na uruchomienie...");
-        ServerText.setToolTipText("");
-        ServerText.setPreferredSize(new java.awt.Dimension(350, 400));
-        ServerText.setSelectedTextColor(new java.awt.Color(120, 120, 120));
-        jScrollPane1.setViewportView(ServerText);
-        ServerText.getAccessibleContext().setAccessibleParent(this);
 
         Launch.setText("Uruchom ręcznie");
         Launch.addActionListener(new java.awt.event.ActionListener() {
@@ -109,19 +102,22 @@ public class ChatroomServer extends javax.swing.JFrame {
 
         ClientList.setText("Lista klientów");
 
+        ServerText.setEditable(false);
+        ServerText.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
+        ServerText.setText("...Serwer czeka na uruchomienie");
+        jScrollPane1.setViewportView(ServerText);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 371, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(Launch)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 143, Short.MAX_VALUE)
                 .addComponent(ClientList)
                 .addContainerGap())
+            .addComponent(jScrollPane1)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -208,13 +204,129 @@ public class ChatroomServer extends javax.swing.JFrame {
      * @param text - tekst do wyświetlenia na panelu administratora
      */
     public void ServerTextAppend(String text){
-        ServerText.append(text);
+        ServerText.setText(ServerText.getText()+text);
+        ServerText.setCaretPosition(ServerText.getDocument().getLength());
     }
+    public void updateChat() throws SQLException{
+        for(PrintWriter temp:clientOutputStreams){
+            ResultSet rs=newquery("Fetch",new String[]{"*"}, MES_TAB,new String[]{TIME_COL+"..in.."+"(SELECT MAX(\""+TIME_COL+"\") FROM \""+MES_TAB+"\")"});
+            
+            while(rs.next()){
+                temp.println(String.join(DELIMITER,"Chat",rs.getString(SEND_COL),rs.getTimestamp(TIME_COL).toString(),rs.getString(MES_COL)));
+                temp.flush();
+            }
+            
+        }
+    }
+    
+    
+    /**
+     * 
+     * @param type przyjmuje "Insert" - wstaw, "Delete"-usuń, "Update"-zaktualizuj
+     * @param values - tabela wartości do wstawienia lub zmienienia
+     * @param table - tablica bazy danych do zmodyfikowania
+     * @param conditions - warunki, zapisane formatem "Kolumna..equal..Wartość"
+     * @return ilość zmodyfikowanych wierszy
+     * @throws SQLException jeżeli wystąpi błąd z połączeniem z bazą danych
+     */
+    public int newupdate(String type, String[] values, String table, String[] conditions) throws SQLException{
+        statement=conn.createStatement();
+        String sql="";
+        switch(type){
+            case "Insert":
+                sql+="INSERT INTO \""+table+"\" VALUES (";
+                for(String temp:values){
+                    if(!temp.equals(values[0])) sql+=", ";
+                    try{
+                        sql+=""+Integer.parseInt(temp);
+                    }catch (NumberFormatException ex){
+                        if ("true".equals(temp) ||"false".equals(temp)) sql+=""+temp;
+                        else sql+="'"+temp+"'";
+                    }
+                }
+                sql+=");";
+                int rs=statement.executeUpdate(sql);
+                return rs;
+                
+            case "Delete":
+                sql+="DELETE FROM \""+table+"\" WHERE ";
+                break;
+            case "Update":
+                sql+="UPDATE \""+table+"\" SET ";
+                for(String temp:values){
+                    if(!temp.equals(values[0])) sql+=", ";
+                    sql+=temp;
+                }
+                sql+=" WHERE ";
+                break;
+        }
+        for(String temp:conditions){
+            if(!temp.equals(conditions[0])) sql+=" AND ";  
+                String[] data=temp.split(Pattern.quote(".."));
+                sql+="\""+data[0]+"\"";
+                switch(data[1]){
+                    case "equal":
+                        sql+=" LIKE ";
+                        break;
+                }
+                sql+="'"+data[2]+"'";
+            }
+            sql+=";";
+            int rs=statement.executeUpdate(sql);
+            return rs;
+    }
+    public ResultSet newquery(String type, String[] values, String table, String[] conditions) throws SQLException{
+        String sql="";
+        switch(type){
+            case "Check":
+                sql+="SELECT *";
+                break;
+            case "Fetch":
+                sql+="SELECT ";
+                for(String temp:values){
+                    if(!temp.equals(values[0])) sql+=", ";
+                    sql+=temp;
+                }
+                break;
+        }
+        sql+=" FROM \""+table+"\"";
+        if(conditions.length>0){
+            sql+=" WHERE ";
+            for(String temp:conditions){
+                if(!temp.equals(conditions[0])) sql+=" AND ";  
+                String[] data=temp.split(Pattern.quote(".."));
+                sql+="\""+data[0]+"\"";
+                switch(data[1]){
+                    case "equal":
+                        sql+=" LIKE ";
+                        sql+="'"+data[2]+"'";
+                        break;
+                    case "bool":
+                        sql+="="+data[2];
+                        break;
+                    case "in":
+                        sql+=" IN ";
+                        sql+=data[2];
+                        break;
+                }
+                
+            }
+        }
+        sql+=";";
+        System.out.println(sql);
+        statement=conn.createStatement();
+        ResultSet rs=statement.executeQuery(sql);
+        return rs;
+    }
+    public javax.swing.JTextPane getServerText(){
+        return ServerText;
+    }
+    
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton ClientList;
     private javax.swing.JButton Launch;
-    private javax.swing.JTextArea ServerText;
+    private javax.swing.JTextPane ServerText;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
 }

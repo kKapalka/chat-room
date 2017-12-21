@@ -28,6 +28,7 @@ public class ChatroomClient extends javax.swing.JFrame {
     BufferedReader reader;
     PrintWriter writer;
     static final String DELIMITER=";end;";
+    Thread IncomingReader;
     /**
      * Creates new form ChatroomClient
      */
@@ -71,30 +72,22 @@ public class ChatroomClient extends javax.swing.JFrame {
         switch(temp[0]){
             case "Login":
                 try{
-                    Connect();
-                    SwitchPanels("Chat");
+                    if(server==null || server.isClosed())Connect();
                     chatPanel2.setUserName(temp[1]);
+                    login=temp[1];
+                    chatPanel2.Clear();
                 } catch (IOException ex){
                     ErrorMessage("CONN_ERROR","Nie udało się połączyć z serwerem");
                 } finally{
                     break;
                 }
             case "Logout":
-                if(server.isConnected()){
-                    writer.println(data);
-                    writer.flush();
-                }
-                try{
-                    server.close();
-                    SwitchPanels("Login");
-                } catch (IOException ex){
-                    ErrorMessage("DC_ERROR","Nie udało się rozłączyć");
-                } finally{
-                    break;
-                }
+                break;
             case "Register": case "Verify":
+                chatPanel2.setUserName(temp[1]);
                 try{
-                    Connect();
+                    if(server==null)Connect();
+                    else if(server.isClosed()) server=new Socket("localhost",2222);
                 } catch(IOException ex){
                     ErrorMessage("CONN_ERROR","Nie udało się połączyć");
                 } finally{
@@ -104,6 +97,7 @@ public class ChatroomClient extends javax.swing.JFrame {
                 if(server.isConnected()){
                     writer.println(data);
                     writer.flush();
+                    IncomingReader.interrupt();
                 }
                 try{
                     server.close();
@@ -136,7 +130,7 @@ public class ChatroomClient extends javax.swing.JFrame {
     }
     
     private void Listen(){
-        Thread IncomingReader = new Thread(new IncomingReader(this));
+        IncomingReader = new Thread(new IncomingReader(this));
         IncomingReader.start();
     }
     /**
@@ -169,7 +163,7 @@ public class ChatroomClient extends javax.swing.JFrame {
             client.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent evt) {
-                    if(client.server.isConnected())client.SendData("Disconnect"+DELIMITER+(client.login==null?client.login:"anon")+DELIMITER);
+                    if(client.server!=null && !client.server.isClosed() )client.SendData("Disconnect"+DELIMITER+(client.login==null?"anon":client.login)+DELIMITER);
                 }
             });
         });
@@ -184,7 +178,9 @@ public class ChatroomClient extends javax.swing.JFrame {
 public LoginPanel getLoginPanel(){
     return this.loginPanel1;
 }
-    
+public void ChatTextAppend(String text){
+    chatPanel2.TextAppend(text);
+}    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private chatroom.client.ChatPanel chatPanel2;
     private chatroom.client.LoginPanel loginPanel1;
