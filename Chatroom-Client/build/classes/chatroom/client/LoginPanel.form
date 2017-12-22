@@ -110,6 +110,9 @@
         <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
           <Font name="Tahoma" size="18" style="0"/>
         </Property>
+        <Property name="mnemonic" type="int" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="KeyEvent.VK_ENTER" type="code"/>
+        </Property>
         <Property name="text" type="java.lang.String" value="Zaloguj"/>
       </Properties>
       <Events>

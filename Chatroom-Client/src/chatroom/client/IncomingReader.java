@@ -7,7 +7,7 @@ package chatroom.client;
 
 import java.awt.HeadlessException;
 import java.io.IOException;
-import javax.swing.JOptionPane;
+import java.util.Arrays;
 
 /**
  *
@@ -17,9 +17,11 @@ import javax.swing.JOptionPane;
     {
         static final String DELIMITER=";end;";
         ChatroomClient parent;
+        
         IncomingReader(ChatroomClient par){
             parent=par;
         }
+        
         @Override
         public void run() 
         {
@@ -30,49 +32,30 @@ import javax.swing.JOptionPane;
             {
                 while ((stream = parent.reader.readLine()) != null) 
                 {
-                    
-                     data = stream.split(DELIMITER);
-
+                    data = stream.split(DELIMITER);
+                        
                      switch (data[0]) 
                      {
-                         case "Error":
-                            JOptionPane.showMessageDialog(parent,
-                            data[2],
-                            data[1],
-                            JOptionPane.ERROR_MESSAGE);
-                            if("LOGININUSE".equals(data[1])){
+                         case "Error": case "Info":
+                            parent.Message(data[0], data[1], data[2]);
+                            String[] ToDispose={"LOGININUSE","VER_SUCCESS"};
+                            if(Arrays.asList(ToDispose).contains(data[1])){
                                 parent.getLoginPanel().dialog.dispose();
                             }
                             break;
-                         case "Info":
-                            JOptionPane.showMessageDialog(parent,
-                            data[2],
-                            data[1],
-                            JOptionPane.INFORMATION_MESSAGE);
-                            if("VER_SUCCESS".equals(data[1])){
-                                parent.getLoginPanel().dialog.dispose();
-                            } 
                          case "Login":
                              if (data.length==1)
                              parent.SwitchPanels("Chat");
                              break;
                          case "Chat":
-                             String text="";
-                             for(String temp:data){
-                                 if (!data[0].equals(temp)){
-                                     if(!data[1].equals(temp))text+=":";
-                                     text+=""+temp;
-                                 }
-                             }
-                             parent.ChatTextAppend(text);
+                             parent.ChatTextAppend(data);
                              break;
                          case "Break":
                              parent.IncomingReader.interrupt();
                              parent.server.close();
                              parent.SwitchPanels("Login");
                              break;
-                     } 
-                     
+                     }    
                 }
            }catch(HeadlessException | IOException ex) { }
         }

@@ -64,18 +64,14 @@ public class ChatroomServer extends javax.swing.JFrame {
      */
     public ChatroomServer() {
         initComponents();
-        setLocation((Toolkit.getDefaultToolkit().getScreenSize().width)/2 - getWidth()/2, (Toolkit.getDefaultToolkit().getScreenSize().height)/2 - getHeight()/2);
-        try{
-        DbConnect();
-        Launch.setEnabled(false);
-        }catch (SQLException ex){
-            ServerText.setText("Nie połączono z bazą.\nPołącz manualnie.");
-        }
-            Thread starter = new Thread(new ServerStart(this));
-            starter.start();
-            
+        setToMiddle();
+        Launch(); 
     }
 
+    private void setToMiddle(){
+        setLocation((Toolkit.getDefaultToolkit().getScreenSize().width)/2 - getWidth()/2, (Toolkit.getDefaultToolkit().getScreenSize().height)/2 - getHeight()/2);
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -132,7 +128,16 @@ public class ChatroomServer extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+    private void Launch(){
+        try{
+        DbConnect();
+        Launch.setEnabled(false);
+        }catch (SQLException ex){
+            ServerText.setText("Nie połączono z bazą.\nSpróbuj ponownie");
+        }
+            Thread starter = new Thread(new ServerStart(this));
+            starter.start();
+    }
     /**
      * <p>Służy do ręcznego połączenia z bazą danych oraz uruchomienia serwera,
      * jeżeli automatyczne połączenie się nie uda - mechanizm fail-safe.</p>
@@ -141,16 +146,7 @@ public class ChatroomServer extends javax.swing.JFrame {
      * @param evt - nasłuchuje naciśnięcia guzika "Połącz manualnie"
      */
     private void LaunchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LaunchActionPerformed
-        try{
-        DbConnect();
-        Launch.setEnabled(false);
-        }catch (SQLException ex){
-            ServerText.setText("Nie połączono z bazą.\nSpróbuj ponownie później");
-        }
-
-            Thread starter = new Thread(new ServerStart(this));
-            starter.start();
-
+        Launch();
     }//GEN-LAST:event_LaunchActionPerformed
 
     /**
@@ -209,115 +205,65 @@ public class ChatroomServer extends javax.swing.JFrame {
     }
     public void updateChat() throws SQLException{
         for(PrintWriter temp:clientOutputStreams){
-            ResultSet rs=newquery("Fetch",new String[]{"*"}, MES_TAB,new String[]{TIME_COL+"..in.."+"(SELECT MAX(\""+TIME_COL+"\") FROM \""+MES_TAB+"\")"});
+            ResultSet rs=Select(MES_TAB,new String[]{"\""+TIME_COL+"\" IN (SELECT MAX(\""+TIME_COL+"\") FROM \""+MES_TAB+"\")"},"*");
             
             while(rs.next()){
-                temp.println(String.join(DELIMITER,"Chat",rs.getString(SEND_COL),rs.getTimestamp(TIME_COL).toString(),rs.getString(MES_COL)));
+                temp.println(String.join(DELIMITER,"Chat",rs.getTimestamp(TIME_COL).toString(),rs.getString(SEND_COL),"  "+rs.getString(MES_COL)));
                 temp.flush();
             }
             
         }
     }
     
-    
-    /**
-     * 
-     * @param type przyjmuje "Insert" - wstaw, "Delete"-usuń, "Update"-zaktualizuj
-     * @param values - tabela wartości do wstawienia lub zmienienia
-     * @param table - tablica bazy danych do zmodyfikowania
-     * @param conditions - warunki, zapisane formatem "Kolumna..equal..Wartość"
-     * @return ilość zmodyfikowanych wierszy
-     * @throws SQLException jeżeli wystąpi błąd z połączeniem z bazą danych
-     */
-    public int newupdate(String type, String[] values, String table, String[] conditions) throws SQLException{
-        statement=conn.createStatement();
-        String sql="";
-        switch(type){
-            case "Insert":
-                sql+="INSERT INTO \""+table+"\" VALUES (";
-                for(String temp:values){
-                    if(!temp.equals(values[0])) sql+=", ";
-                    try{
-                        sql+=""+Integer.parseInt(temp);
-                    }catch (NumberFormatException ex){
-                        if ("true".equals(temp) ||"false".equals(temp)) sql+=""+temp;
-                        else sql+="'"+temp+"'";
-                    }
-                }
-                sql+=");";
-                int rs=statement.executeUpdate(sql);
-                return rs;
-                
-            case "Delete":
-                sql+="DELETE FROM \""+table+"\" WHERE ";
-                break;
-            case "Update":
-                sql+="UPDATE \""+table+"\" SET ";
-                for(String temp:values){
-                    if(!temp.equals(values[0])) sql+=", ";
-                    sql+=temp;
-                }
-                sql+=" WHERE ";
-                break;
-        }
-        for(String temp:conditions){
-            if(!temp.equals(conditions[0])) sql+=" AND ";  
-                String[] data=temp.split(Pattern.quote(".."));
-                sql+="\""+data[0]+"\"";
-                switch(data[1]){
-                    case "equal":
-                        sql+=" LIKE ";
-                        break;
-                }
-                sql+="'"+data[2]+"'";
-            }
-            sql+=";";
-            int rs=statement.executeUpdate(sql);
-            return rs;
+    public void Insert(String table, String... values){
+        String sql="INSERT INTO \""+table+"\" VALUES("+String.join(", ",values)+");";
+        updateDatabase(sql);
     }
-    public ResultSet newquery(String type, String[] values, String table, String[] conditions) throws SQLException{
-        String sql="";
-        switch(type){
-            case "Check":
-                sql+="SELECT *";
-                break;
-            case "Fetch":
-                sql+="SELECT ";
-                for(String temp:values){
-                    if(!temp.equals(values[0])) sql+=", ";
-                    sql+=temp;
-                }
-                break;
-        }
-        sql+=" FROM \""+table+"\"";
-        if(conditions.length>0){
-            sql+=" WHERE ";
-            for(String temp:conditions){
-                if(!temp.equals(conditions[0])) sql+=" AND ";  
-                String[] data=temp.split(Pattern.quote(".."));
-                sql+="\""+data[0]+"\"";
-                switch(data[1]){
-                    case "equal":
-                        sql+=" LIKE ";
-                        sql+="'"+data[2]+"'";
-                        break;
-                    case "bool":
-                        sql+="="+data[2];
-                        break;
-                    case "in":
-                        sql+=" IN ";
-                        sql+=data[2];
-                        break;
-                }
-                
-            }
-        }
+    public void Delete(String table, String... conditions){
+        String sql="DELETE FROM \""+table+"\" WHERE ";
+        sql+=String.join(" AND ",conditions);
+        updateDatabase(sql);
+    }
+    public void Update(String table, String[] conditions, String... values){
+        String sql="UPDATE \""+table+"\" SET " + String.join(", ", values) + " WHERE "+String.join(" AND ",conditions)+";";
+        updateDatabase(sql);
+    }
+    public ResultSet Select(String table, String[] conditions, String... columns){
+        String sql="SELECT "+String.join(", ",columns)+" FROM \""+table+"\"";
+        if(conditions.length>0) sql+= " WHERE "+String.join(" AND ",conditions);
         sql+=";";
         System.out.println(sql);
+        return queryDatabase(sql);
+    }
+    public Boolean CheckIn(String table, String[] conditions){
+        try{
+        return Select(table, conditions, "*").next();
+        } catch (SQLException ex){
+            ServerTextAppend("Błąd podczas sprawdzania bazy danych");
+            return null;
+        }
+    }
+    private void updateDatabase(String sql){
+        int rs;
+        try{
+            System.out.println(sql);
+        statement=conn.createStatement();
+        rs=statement.executeUpdate(sql);
+        }catch (SQLException ex){
+            ServerTextAppend("Błąd w trakcie aktualizacji tabeli.");
+        }
+    }
+    private ResultSet queryDatabase(String sql){
+        try{
         statement=conn.createStatement();
         ResultSet rs=statement.executeQuery(sql);
         return rs;
+        }catch (SQLException ex){
+            ServerTextAppend("Błąd podczas wybierania wartości z bazy.");
+        }
+        return null;
     }
+    
     public javax.swing.JTextPane getServerText(){
         return ServerText;
     }

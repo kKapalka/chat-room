@@ -100,6 +100,7 @@ public class ChatPanel extends javax.swing.JPanel {
     public void Clear(){
         Chat.setText("");
     }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextPane Chat;
     private javax.swing.JButton Logout;

@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
-import java.util.regex.Pattern;
+import java.util.Arrays;
 /**
  *
  * @author kkapa
@@ -38,6 +38,7 @@ public class ClientHandler implements Runnable
        {
             parent=par;
             client = user;
+            
             try 
             {
                 sock = clientSocket;
@@ -46,7 +47,6 @@ public class ClientHandler implements Runnable
             }
             catch (IOException ex) 
             {
-                
                 parent.ServerTextAppend("Błąd podczas łączenia z klientem\n");
             }
        }
@@ -68,20 +68,18 @@ public class ClientHandler implements Runnable
                         case "Register":
                             try
                             {
-                                if(ExistsIn(USER_TAB,new String[]{EMAIL_COL+"..equal.."+data[3]}))
+                                if(CheckInUser("","","",data[3]))
                                 {
                                     SendToClient("Error","EMAILINUSE","Ktoś już używa tego adresu e-mail.");
                                     break;
                                 }
-                                else if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+"..equal.."+data[1]})){
+                                else if(CheckInUser("",data[1])){
                                     SendToClient("Error","LOGININUSE","Ten login już jest zajęty. Zmień login.");
                                     break;
                                 }
                                 
-                                int new_id=createNewId(USER_TAB,ID_COL);
-                                String encoded=Encrypt(data[2]);
                                 String verifyCode=randomVerifyCode();
-                                int addUser=InsertTo(USER_TAB, new String[]{""+new_id,encoded,data[1],verifyCode,data[3],"false"});
+                                parent.Insert(USER_TAB,""+createNewId(USER_TAB,ID_COL),Encrypt(data[2]),data[1],verifyCode,data[3],"false");
                                 SendToClient("Info","CODE_SENT","Kod weryfikacyjny przesłano na e-mail: "+data[3]);
                             
                                 //parent.sender.Send(data[3],verifyCode);
@@ -93,27 +91,26 @@ public class ClientHandler implements Runnable
                             break;
                         case "Verify":
                             try{
-                                String encoded=Encrypt(data[2]);
-                                if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+"..equal.."+data[1],PASS_COL+"..equal.."+encoded,EMAIL_COL+"..equal.."+data[3]})){
-                                    if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+"..equal.."+data[1],VER_COL+"..bool.."+"true"})){
-                                        SendToClient("Info","ALREADY_DONE","Klient o takich danych był już zarejestrowany.");  
-                                    }
-                                    else if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+"..equal.."+data[1],CODE_COL+"..equal.."+data[4]})){
-                                        int updated=parent.newupdate("Update",new String[]{"\""+VER_COL+"\"=true"},USER_TAB,new String[]{LOGIN_COL+"..equal.."+data[1]});
-                                        if(updated==1) SendToClient("Info","VER_SUCCESS","Weryfikacja zakończona sukcesem. Można się zalogować.");
+                                if(!CheckInUser(Encrypt(data[2]),data[1])) SendToClient("Error","CRED_INVALID","Nie istnieje klient z takimi danymi");
+                                else{
+                                    if(CheckInUser(Encrypt(data[2]),data[1],"",data[3],"true"))
+                                        SendToClient("Info","ALREADY_DONE","Klient o takich danych był już zarejestrowany.");
+                                    
+                                    else if(CheckInUser("",data[1],data[4])){
+                                        parent.Update(USER_TAB,new String[]{LOGIN_COL+" LIKE '"+data[1]+"'"},"\""+VER_COL+"\"=true");
+                                        SendToClient("Info","VER_SUCCESS","Weryfikacja zakończona sukcesem. Można się zalogować.");
                                     } else{
                                         SendToClient("Error","CODE_INVALID","Błędny kod weryfikacyjny. Sprawdź swoją skrzynkę pocztową.");
                                     }
                                 }
-                                else SendToClient("Error","CRED_INVALID","Nie istnieje klient z takimi danymi");
-                            } catch(NoSuchAlgorithmException |SQLException ex){
+                                 
+                            } catch(NoSuchAlgorithmException ex){
                                 parent.ServerTextAppend("Błąd w sekwencji weryfikacji\n");
                             }
                             break;
                         case "Login":
                             try{
-                                String encoded=Encrypt(data[2]);
-                                if(ExistsIn(USER_TAB,new String[]{LOGIN_COL+"..equal.."+data[1],PASS_COL+"..equal.."+encoded})){
+                                if(CheckInUser(Encrypt(data[2]),data[1])){
                                     if(parent.users.contains(data[1])){
                                         SendToClient("Error","LOGIN_IN_USE","Użytkownik o takim loginie jest już zalogowany");
                                         SendToClient("Break");
@@ -142,7 +139,7 @@ public class ClientHandler implements Runnable
                             break;
                         case "Message":
                             int new_id=createNewId(MES_TAB,MES_ID_COL);
-                            parent.newupdate("Insert",new String[]{""+new_id,data[2],curDate,data[1]},MES_TAB,new String[]{});
+                            parent.Insert(MES_TAB,""+new_id,"'"+data[2]+"'","'"+curDate+"'","'"+data[1]+"'");
                             parent.updateChat();
                             break;
                         
@@ -173,24 +170,31 @@ public class ClientHandler implements Runnable
         return result.toString();
     }
     
-    private Boolean ExistsIn(String table, String[] conditions) throws SQLException{
-        ResultSet rs=parent.newquery("Check",new String[]{},table,conditions);
-        return rs.next();
-    }
-    private int InsertTo(String table, String[] values) throws SQLException{
-        int rs=parent.newupdate("Insert",values,table,new String[]{});
-        return rs;
-    }
     public void SendToClient(CharSequence... elements){
         String text=String.join(DELIMITER, elements);
         client.println(text);
         client.flush();
     }
     
+    /**
+     * 
+     * @param data - informacje do sprawdzenia w tabeli użytkowników, w kolejności: hasło, login, kod, email, czy jest zweryfikowany
+     * @return true jeżeli dany rekord istnieje w tabeli
+     */
+    public Boolean CheckInUser(String... data){
+        if (data.length==0 || data.length>5) return null;
+        String[] Order={"\""+PASS_COL+"\"","\""+LOGIN_COL+"\"","\""+CODE_COL+"\"","\""+EMAIL_COL+"\"","\""+VER_COL+"\""};
+        String[] conditions=new String[data.length];
+        for(int i=0;i<data.length;i++){
+            if(!"".equals(data[i]) && i<4) conditions[i]=Order[i]+" LIKE '"+data[i]+"'";
+            else if(i==4) conditions[i]=Order[i]+"=true";
+        }
+        return parent.CheckIn(USER_TAB, conditions);
+    }
     private void SendFullChat() throws SQLException{
-        ResultSet rs=parent.newquery("Fetch",new String[]{"*"},MES_TAB,new String[]{});
+        ResultSet rs=parent.Select(MES_TAB,new String[]{},"*");
         while(rs.next()){
-            SendToClient("Chat",rs.getString(SEND_COL),rs.getTimestamp(TIME_COL).toString(),rs.getString(MES_COL));
+            SendToClient("Chat",rs.getTimestamp(TIME_COL).toString(),rs.getString(SEND_COL),"  "+rs.getString(MES_COL));
             
         }
         SendToClient("Chat","Zalogowano");
@@ -206,7 +210,7 @@ public class ClientHandler implements Runnable
         return datetime;
     }
     private int createNewId(String table,String id_col) throws SQLException{
-        ResultSet rs=parent.newquery("Fetch",new String[]{"max(\""+id_col+"\")"},table,new String[]{});
+        ResultSet rs=parent.Select(table,new String[]{},"max(\""+id_col+"\")");
         int new_id=0;
         while(rs.next()) new_id=rs.getInt("max")+1;
         return new_id;

@@ -6,6 +6,7 @@
 package chatroom.client;
 
 import java.awt.Frame;
+import java.awt.event.KeyEvent;
 
 /**
  *
@@ -50,6 +51,7 @@ public class LoginPanel extends javax.swing.JPanel {
         jLabel3.setText("Hasło:");
 
         LoginButton.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        LoginButton.setMnemonic(KeyEvent.VK_ENTER);
         LoginButton.setText("Zaloguj");
         LoginButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -137,7 +139,7 @@ public class LoginPanel extends javax.swing.JPanel {
         dialog.pack();
         dialog.setVisible (true);
     }//GEN-LAST:event_RegisterButtonActionPerformed
-
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton LoginButton;

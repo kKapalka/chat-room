@@ -7,6 +7,7 @@ package chatroom.client;
 
 import java.awt.CardLayout;
 import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
@@ -23,7 +24,6 @@ import javax.swing.JOptionPane;
  * @author kkapa
  */
 public class ChatroomClient extends javax.swing.JFrame {
-    int user_id;
     String login,pass;
     Socket server;
     BufferedReader reader;
@@ -57,7 +57,11 @@ public class ChatroomClient extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    
+    /**
+     * Funkcja odpowidzialna za wyświetlenie odpowiedniego panelu w odpowiednim momencie:
+     * <p> Panel czatu - po zalogowaniu, Panel logowania - po wylogowaniu
+     * @param state - panel, który chcemy wyświetlić
+     */
     public void SwitchPanels(String state){
         CardLayout cards = (CardLayout)(getContentPane().getLayout());
         switch(state){
@@ -81,6 +85,7 @@ public class ChatroomClient extends javax.swing.JFrame {
      * i nasłuchuje odpowiedzi.
      * <p> W razie gdy to jest potrzebne (podczas rejestracji, weryfikacji i logowania) funkcja dodatkowo próbuje połączyć
      * się z serwerem. Gdy to się nie uda, wiadomość po prostu nie zostanie przesłana</p>
+     * <p> Podczas wysyłania wiadomości innego typu program zakłada, że jest połączony z serwerem</p>
      * @param data - rozszerzalna lista ciągów znaków do przesłania do serwera
      */
     public void SendData(String... data){
@@ -127,7 +132,7 @@ public class ChatroomClient extends javax.swing.JFrame {
         reader = new BufferedReader(streamreader);
         writer = new PrintWriter(server.getOutputStream());
         } catch (IOException ex){
-            ErrorMessage("CONN_ERROR","Nie udało się połączyć");
+            Message("Error","CONN_ERROR","Nie udało się połączyć");
         }
     }
     /**
@@ -138,15 +143,19 @@ public class ChatroomClient extends javax.swing.JFrame {
         return !(server==null || server.isClosed());
     }
     /**
-     * Funkcja wyświetla po stronie klienta okno błędu, z wybranym tytułem i wiadomością
+     * Funkcja wyświetla po stronie klienta okno dialogowe, z wybranym tytułem i wiadomością
+     * @param type - typ wiadomości do wyświetlenia
      * @param title - tytuł okna dialogowego
      * @param message - wiadomość w oknie dialogowym
      */
-    public void ErrorMessage(String title, String message){
+    public void Message(String type,String title, String message){
+        int messagetype=0;
+        if ("Error".equals(type)) messagetype=JOptionPane.ERROR_MESSAGE;
+        if ("Info".equals(type)) messagetype=JOptionPane.INFORMATION_MESSAGE;
         JOptionPane.showMessageDialog(this,
             message,
             title,
-            JOptionPane.ERROR_MESSAGE);
+            messagetype);
     }
     /**
      * Funkcja uruchamia nowy wątek zawierający klasę IncomingReader - służącą do nasłuchiwania i odbierania wiadomości przez serwer
@@ -185,7 +194,7 @@ public class ChatroomClient extends javax.swing.JFrame {
             client.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent evt) {
-                    if(client.server!=null && !client.server.isClosed() )client.SendData("Disconnect"+DELIMITER+(client.login==null?"anon":client.login)+DELIMITER);
+                    if(client.ServerIsActive())client.SendData("Disconnect",client.login==null?"anon":client.login);
                 }
             });
         });
@@ -203,9 +212,16 @@ public LoginPanel getLoginPanel(){
 /**
  * Funkcja ma za zadanie umożliwić innym klasom wewnątrz aplikacji dostęp do panelu czatu
  * <p> Dzięki temu klasa IncomingReader może wypisywać nowe wiadomości w oknie czatu</p>
- * @param text - tekst do podpięcia do okna czatu
+ * @param data - informacje do wyświetlenia w oknie czatu
  */
-public void ChatTextAppend(String text){
+public void ChatTextAppend(String[] data){
+    String text="";
+        for(String temp:data){
+            if (!data[0].equals(temp)){
+                if(!data[1].equals(temp))text+=":";
+                text+=""+temp;
+            }
+        }
     Chat.TextAppend(text);
 }    
     // Variables declaration - do not modify//GEN-BEGIN:variables
