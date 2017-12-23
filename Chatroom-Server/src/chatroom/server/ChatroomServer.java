@@ -8,11 +8,16 @@ package chatroom.server;
 import java.awt.Toolkit;
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * 
@@ -52,6 +57,8 @@ public class ChatroomServer extends javax.swing.JFrame {
      * Klasa służąca wyłącznie do przesyłania e-maili
      */
     static MailSender sender=new MailSender();
+    
+    Table tab_users, messages, mutes;
     
     static final String MES_TAB="messages",MES_ID_COL="id",MES_COL="message",TIME_COL="sendtime",SEND_COL="username";
     //order: id, username, sendtime, message   
@@ -191,6 +198,47 @@ public class ChatroomServer extends javax.swing.JFrame {
     private void DbConnect() throws SQLException{
         conn = DriverManager.getConnection(url,LOGIN,PASS);
         ServerText.setText("Połączono z bazą:\n"+url+"\n");
+        InitializeDatabaseInfo();
+    }
+    
+    private void InitializeDatabaseInfo() throws SQLException{
+        ArrayList<Table> tables=GetAllTables();
+        tables.forEach((temp) -> {
+            try {
+                GetAllColumns(temp);
+            } catch (SQLException ex) {
+                Logger.getLogger(ChatroomServer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            if(null != ""+temp)switch (""+temp) {
+                case "users":
+                    tab_users=temp;
+                    break;
+                case "messages":
+                    messages=temp;
+                    break;
+                case "mutes":
+                    mutes=temp;
+                    break;
+                default:
+                    break;
+            }
+        });
+        
+    }
+    private ArrayList<Table> GetAllTables() throws SQLException{
+        ArrayList<Table> tables=new ArrayList<>();
+        ResultSet rs = conn.getMetaData().getTables("Chatroom", null, "%", null);
+        while (rs.next()) {
+          if (rs.getString(4)!=null && rs.getString(4).equalsIgnoreCase("TABLE")) {
+                tables.add(new Table(rs.getString(3)));
+            }
+        }
+        return tables;
+    }
+    private void GetAllColumns(Table table) throws SQLException{
+        ResultSet rs = conn.createStatement().executeQuery("select * from "+table.name);
+        ResultSetMetaData rsmd = rs.getMetaData();
+        for(int i=1;i<=rsmd.getColumnCount();i++) table.addColumn(rsmd.getColumnName(i), rsmd.getColumnTypeName(i));
     }
     /**
      * <p> Funkcja służy do podpinania tekstu do panelu administratora.<p>
@@ -203,11 +251,12 @@ public class ChatroomServer extends javax.swing.JFrame {
         ServerText.setCaretPosition(ServerText.getDocument().getLength());
     }
     public void updateChat() throws SQLException{
+        
         for(PrintWriter temp:clientOutputStreams){
-            ResultSet rs=Select(MES_TAB,new String[]{TIME_COL+" IN (SELECT MAX("+TIME_COL+") FROM "+MES_TAB+")"},"*");
+            ResultSet rs=Select(""+messages,new String[]{messages.Get(2)+" IN (SELECT MAX("+messages.Get(2)+") FROM "+messages+")"},"*");
             
             while(rs.next()){
-                temp.println(String.join(DELIMITER,"Chat",rs.getTimestamp(TIME_COL).toString(),rs.getString(SEND_COL),"  "+rs.getString(MES_COL)));
+                temp.println(String.join(DELIMITER,"Chat",rs.getTimestamp(messages.Get(2)).toString(),rs.getString(messages.Get(1)),"  "+rs.getString(messages.Get(3))));
                 temp.flush();
             }
             

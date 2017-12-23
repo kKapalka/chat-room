@@ -100,8 +100,8 @@ public class ClientHandler implements Runnable
                             parent.clientOutputStreams.remove(client);
                             break;
                         case "Message":
-                            int new_id=createNewId(MES_TAB,MES_ID_COL);
-                            parent.Insert(MES_TAB,""+new_id,"'"+data[1]+"'","'"+curDate+"'","'"+data[2]+"'");
+                            int new_id=createNewId(""+parent.messages,parent.messages.Get(0));
+                            parent.Insert(""+parent.messages,""+new_id,"'"+data[1]+"'","'"+curDate+"'","'"+data[2]+"'");
                             parent.updateChat();
                             break;
                         
@@ -126,7 +126,7 @@ public class ClientHandler implements Runnable
             else if(CheckInUser(data[1])) SendToClient("Error","LOGININUSE","Ten login już jest zajęty. Zmień login.");
             else{
                 String verifyCode=randomVerifyCode();
-                parent.Insert(USER_TAB,""+createNewId(USER_TAB,ID_COL),"'"+data[1]+"'","'"+Encrypt(data[2])+"'","'"+data[3]+"'","'"+verifyCode+"'","false");
+                parent.Insert(""+parent.tab_users,""+createNewId(""+parent.tab_users,parent.tab_users.Get(0)),"'"+data[1]+"'","'"+Encrypt(data[2])+"'","'"+data[3]+"'","'"+verifyCode+"'","false");
                 SendToClient("Info","CODE_SENT","Kod weryfikacyjny przesłano na e-mail: "+data[3]);
                 //parent.sender.Send(data[3],verifyCode);
             }
@@ -143,7 +143,7 @@ public class ClientHandler implements Runnable
                 if(CheckInUser(data[1],Encrypt(data[2]),data[3],"","true")) SendToClient("Info","ALREADY_DONE","Klient o takich danych był już zarejestrowany.");
 
                 else if(CheckInUser(data[1],"","",data[4])){
-                    parent.Update(USER_TAB,new String[]{LOGIN_COL+" LIKE '"+data[1]+"'"},VER_COL+"=true");
+                    parent.Update(""+parent.tab_users,new String[]{parent.tab_users.Get(1)+" LIKE '"+data[1]+"'"},parent.tab_users.Get(5)+"=true");
                     SendToClient("Info","VER_SUCCESS","Weryfikacja zakończona sukcesem. Można się zalogować.");
                 } else SendToClient("Error","CODE_INVALID","Błędny kod weryfikacyjny. Sprawdź swoją skrzynkę pocztową.");
 
@@ -179,19 +179,18 @@ public class ClientHandler implements Runnable
         if (data.length==0 || data.length>5) return null;
         int size=0;
         for(String temp:data) if(!"".equals(temp)) size++;
-        String[] Order={LOGIN_COL,PASS_COL,EMAIL_COL,CODE_COL,VER_COL};
         String[] conditions=new String[size];
         int j=0;
         for(int i=0;i<data.length;i++){
-            if(!"".equals(data[i]) && i<4) conditions[j++]=Order[i]+" LIKE '"+data[i]+"'";
-            else if(i==4) conditions[j++]=Order[i]+"=true";
+            if(!"".equals(data[i]) && i<4) conditions[j++]=parent.tab_users.Get(i+1)+" LIKE '"+data[i]+"'";
+            else if(i==4) conditions[j++]=parent.tab_users.Get(i+1)+"=true";
         }
-        return parent.CheckIn(USER_TAB, conditions);
+        return parent.CheckIn(""+parent.tab_users, conditions);
     }
     private void SendFullChat() throws SQLException{
         ResultSet rs=parent.Select(MES_TAB,new String[]{},"*");
         while(rs.next()){
-            SendToClient("Chat",rs.getTimestamp(TIME_COL).toString(),rs.getString(SEND_COL),"  "+rs.getString(MES_COL));
+            SendToClient("Chat",rs.getTimestamp(parent.messages.Get(2)).toString(),rs.getString(parent.messages.Get(1)),"  "+rs.getString(parent.messages.Get(3)));
             
         }
         SendToClient("Chat","Zalogowano");
