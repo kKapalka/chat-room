@@ -99,6 +99,11 @@ public class ChatroomServer extends javax.swing.JFrame {
         });
 
         ClientList.setText("Lista klientów");
+        ClientList.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ClientListActionPerformed(evt);
+            }
+        });
 
         ServerText.setEditable(false);
         ServerText.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
@@ -150,6 +155,14 @@ public class ChatroomServer extends javax.swing.JFrame {
     private void LaunchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LaunchActionPerformed
         Launch();
     }//GEN-LAST:event_LaunchActionPerformed
+
+    private void ClientListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ClientListActionPerformed
+        String activeusers="";
+        for(User temp: users){
+            activeusers+=" "+temp.name;
+        }
+        ServerTextAppend("Aktywni klienci: "+activeusers);        // TODO add your handling code here:
+    }//GEN-LAST:event_ClientListActionPerformed
 
     /**
      * @param args Nieużywany
