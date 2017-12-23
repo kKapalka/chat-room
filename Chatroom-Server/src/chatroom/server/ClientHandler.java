@@ -98,8 +98,13 @@ public class ClientHandler implements Runnable
                             parent.users.remove(new User(data[1],client));
                             break;
                         case "Message":
-                            if(data.length==3 && data[2].substring(0, 5).equals("/mute")) Mute(data[2].substring(6));
-                            else if(data.length==3 && data[2].substring(0, 7).equals("/unmute")) Unmute(data[2].substring(8));
+                            if(data.length==3 && data[2].substring(0,1).equals("/")){
+                                if(data[2].length()>5){ if(data[2].substring(0, 5).equals("/mute"))
+                                    Mute(data[2].substring(6));
+                                }
+                                else if(data[2].length()>7){ if (data[2].substring(0, 7).equals("/unmute")) Unmute(data[2].substring(8));
+                                }
+                                }
                             else{
                                 int new_id=createNewId(""+parent.messages,parent.messages.Get(0));
                                 parent.Insert(""+parent.messages,""+new_id,"'"+data[1]+"'","'"+curDate+"'",data.length<3?"''":"'"+data[2]+"'");

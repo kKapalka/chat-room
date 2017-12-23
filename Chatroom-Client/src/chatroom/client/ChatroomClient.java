@@ -103,7 +103,7 @@ public class ChatroomClient extends javax.swing.JFrame {
      * @param message - wiadomość do przesłania do serwera
      */
     private void SendAndListen(String message){
-        if(server.isConnected()){
+        if(ServerIsActive()){
             writer.println(message);
             writer.flush();
             Listen();
