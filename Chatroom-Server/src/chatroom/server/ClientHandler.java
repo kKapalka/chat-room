@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
-import java.util.Arrays;
 /**
  *
  * @author kkapa
@@ -30,10 +29,10 @@ public class ClientHandler implements Runnable
        ChatroomServer parent;
        String login;
        //Tablenames and Column_names used in our custom database - defining constants. Set according to your own database
-       static final String USER_TAB="Users",LOGIN_COL="login",PASS_COL="pass",EMAIL_COL="email",ID_COL="user_ID",CODE_COL="verification_code",VER_COL="verified";
-       //order in USER_TAB: user_ID,pass,login,verification_code,email,verified
-       static final String MES_TAB="Messages",MES_ID_COL="message_id",MES_COL="message",TIME_COL="timestamp_sent",SEND_COL="user";
-        //order in Messages: message_id,message,timestamp_sent,user
+       static final String USER_TAB="users",LOGIN_COL="login",PASS_COL="pass",EMAIL_COL="email",ID_COL="id",CODE_COL="code",VER_COL="verified";
+       //order in USER_TAB: id,login,pass,email,code,verified
+       static final String MES_TAB="messages",MES_ID_COL="id",MES_COL="message",TIME_COL="sendtime",SEND_COL="username";
+        //order in messages: message_id,user,sendtime,message
     public ClientHandler(Socket clientSocket, PrintWriter user, ChatroomServer par) 
        {
             parent=par;
@@ -66,51 +65,14 @@ public class ClientHandler implements Runnable
                     data = message.split(DELIMITER);
                     switch(data[0]){
                         case "Register":
-                            try
-                            {
-                                if(CheckInUser("","","",data[3]))
-                                {
-                                    SendToClient("Error","EMAILINUSE","Ktoś już używa tego adresu e-mail.");
-                                    break;
-                                }
-                                else if(CheckInUser("",data[1])){
-                                    SendToClient("Error","LOGININUSE","Ten login już jest zajęty. Zmień login.");
-                                    break;
-                                }
-                                
-                                String verifyCode=randomVerifyCode();
-                                parent.Insert(USER_TAB,""+createNewId(USER_TAB,ID_COL),Encrypt(data[2]),data[1],verifyCode,data[3],"false");
-                                SendToClient("Info","CODE_SENT","Kod weryfikacyjny przesłano na e-mail: "+data[3]);
-                            
-                                //parent.sender.Send(data[3],verifyCode);
-                            }
-                            catch (NullPointerException|NoSuchAlgorithmException ex)
-                            {
-                                parent.ServerTextAppend("Błąd w sekwencji rejestracji\n");
-                            }
+                            RegisterUser(data);
                             break;
                         case "Verify":
-                            try{
-                                if(!CheckInUser(Encrypt(data[2]),data[1])) SendToClient("Error","CRED_INVALID","Nie istnieje klient z takimi danymi");
-                                else{
-                                    if(CheckInUser(Encrypt(data[2]),data[1],"",data[3],"true"))
-                                        SendToClient("Info","ALREADY_DONE","Klient o takich danych był już zarejestrowany.");
-                                    
-                                    else if(CheckInUser("",data[1],data[4])){
-                                        parent.Update(USER_TAB,new String[]{LOGIN_COL+" LIKE '"+data[1]+"'"},"\""+VER_COL+"\"=true");
-                                        SendToClient("Info","VER_SUCCESS","Weryfikacja zakończona sukcesem. Można się zalogować.");
-                                    } else{
-                                        SendToClient("Error","CODE_INVALID","Błędny kod weryfikacyjny. Sprawdź swoją skrzynkę pocztową.");
-                                    }
-                                }
-                                 
-                            } catch(NoSuchAlgorithmException ex){
-                                parent.ServerTextAppend("Błąd w sekwencji weryfikacji\n");
-                            }
+                            VerifyUser(data);
                             break;
                         case "Login":
                             try{
-                                if(CheckInUser(Encrypt(data[2]),data[1])){
+                                if(CheckInUser(data[1],Encrypt(data[2]))){
                                     if(parent.users.contains(data[1])){
                                         SendToClient("Error","LOGIN_IN_USE","Użytkownik o takim loginie jest już zalogowany");
                                         SendToClient("Break");
@@ -139,7 +101,7 @@ public class ClientHandler implements Runnable
                             break;
                         case "Message":
                             int new_id=createNewId(MES_TAB,MES_ID_COL);
-                            parent.Insert(MES_TAB,""+new_id,"'"+data[2]+"'","'"+curDate+"'","'"+data[1]+"'");
+                            parent.Insert(MES_TAB,""+new_id,"'"+data[1]+"'","'"+curDate+"'","'"+data[2]+"'");
                             parent.updateChat();
                             break;
                         
@@ -157,7 +119,39 @@ public class ClientHandler implements Runnable
              } 
             
         } 
-      
+    private void RegisterUser(String[] data){
+        try
+        {
+            if(CheckInUser("","",data[3])) SendToClient("Error","EMAILINUSE","Ktoś już używa tego adresu e-mail.");
+            else if(CheckInUser(data[1])) SendToClient("Error","LOGININUSE","Ten login już jest zajęty. Zmień login.");
+            else{
+                String verifyCode=randomVerifyCode();
+                parent.Insert(USER_TAB,""+createNewId(USER_TAB,ID_COL),"'"+data[1]+"'","'"+Encrypt(data[2])+"'","'"+data[3]+"'","'"+verifyCode+"'","false");
+                SendToClient("Info","CODE_SENT","Kod weryfikacyjny przesłano na e-mail: "+data[3]);
+                //parent.sender.Send(data[3],verifyCode);
+            }
+        }
+        catch (NoSuchAlgorithmException|SQLException ex)
+        {
+            parent.ServerTextAppend("Błąd w sekwencji rejestracji\n");
+        }
+    }
+    private void VerifyUser(String[] data){
+        try{
+            if(!CheckInUser(data[1],Encrypt(data[2]))) SendToClient("Error","CRED_INVALID","Nie istnieje klient z takimi danymi");
+            else{
+                if(CheckInUser(data[1],Encrypt(data[2]),data[3],"","true")) SendToClient("Info","ALREADY_DONE","Klient o takich danych był już zarejestrowany.");
+
+                else if(CheckInUser(data[1],"","",data[4])){
+                    parent.Update(USER_TAB,new String[]{LOGIN_COL+" LIKE '"+data[1]+"'"},VER_COL+"=true");
+                    SendToClient("Info","VER_SUCCESS","Weryfikacja zakończona sukcesem. Można się zalogować.");
+                } else SendToClient("Error","CODE_INVALID","Błędny kod weryfikacyjny. Sprawdź swoją skrzynkę pocztową.");
+
+            }   
+        } catch(NoSuchAlgorithmException ex){
+            parent.ServerTextAppend("Błąd w sekwencji weryfikacji\n");
+        }
+    }
        private String Encrypt(String text) throws NoSuchAlgorithmException{
            MessageDigest digest = MessageDigest.getInstance("SHA-256");
            byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
@@ -178,16 +172,19 @@ public class ClientHandler implements Runnable
     
     /**
      * 
-     * @param data - informacje do sprawdzenia w tabeli użytkowników, w kolejności: hasło, login, kod, email, czy jest zweryfikowany
+     * @param data - informacje do sprawdzenia w tabeli użytkowników, w kolejności: login, hasło,email,kod weryfikacji, czy jest zweryfikowane
      * @return true jeżeli dany rekord istnieje w tabeli
      */
     public Boolean CheckInUser(String... data){
         if (data.length==0 || data.length>5) return null;
-        String[] Order={"\""+PASS_COL+"\"","\""+LOGIN_COL+"\"","\""+CODE_COL+"\"","\""+EMAIL_COL+"\"","\""+VER_COL+"\""};
-        String[] conditions=new String[data.length];
+        int size=0;
+        for(String temp:data) if(!"".equals(temp)) size++;
+        String[] Order={LOGIN_COL,PASS_COL,EMAIL_COL,CODE_COL,VER_COL};
+        String[] conditions=new String[size];
+        int j=0;
         for(int i=0;i<data.length;i++){
-            if(!"".equals(data[i]) && i<4) conditions[i]=Order[i]+" LIKE '"+data[i]+"'";
-            else if(i==4) conditions[i]=Order[i]+"=true";
+            if(!"".equals(data[i]) && i<4) conditions[j++]=Order[i]+" LIKE '"+data[i]+"'";
+            else if(i==4) conditions[j++]=Order[i]+"=true";
         }
         return parent.CheckIn(USER_TAB, conditions);
     }
@@ -210,7 +207,7 @@ public class ClientHandler implements Runnable
         return datetime;
     }
     private int createNewId(String table,String id_col) throws SQLException{
-        ResultSet rs=parent.Select(table,new String[]{},"max(\""+id_col+"\")");
+        ResultSet rs=parent.Select(table,new String[]{},"max("+id_col+")");
         int new_id=0;
         while(rs.next()) new_id=rs.getInt("max")+1;
         return new_id;

@@ -13,7 +13,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.regex.Pattern;
 
 /**
  * 
@@ -54,8 +53,8 @@ public class ChatroomServer extends javax.swing.JFrame {
      */
     static MailSender sender=new MailSender();
     
-    static final String MES_TAB="Messages",MES_ID_COL="message_id",MES_COL="message",TIME_COL="timestamp_sent",SEND_COL="user";
-       
+    static final String MES_TAB="messages",MES_ID_COL="id",MES_COL="message",TIME_COL="sendtime",SEND_COL="username";
+    //order: id, username, sendtime, message   
     /**
      * <p>Funkcja tworzy nowy formularz ChatroomServer, i wyśrodkowuje go na ekranie</p>
      * <p>Łączy się automatycznie z bazą danych i uruchamia wątek ServerStart zbierający
@@ -205,7 +204,7 @@ public class ChatroomServer extends javax.swing.JFrame {
     }
     public void updateChat() throws SQLException{
         for(PrintWriter temp:clientOutputStreams){
-            ResultSet rs=Select(MES_TAB,new String[]{"\""+TIME_COL+"\" IN (SELECT MAX(\""+TIME_COL+"\") FROM \""+MES_TAB+"\")"},"*");
+            ResultSet rs=Select(MES_TAB,new String[]{TIME_COL+" IN (SELECT MAX("+TIME_COL+") FROM "+MES_TAB+")"},"*");
             
             while(rs.next()){
                 temp.println(String.join(DELIMITER,"Chat",rs.getTimestamp(TIME_COL).toString(),rs.getString(SEND_COL),"  "+rs.getString(MES_COL)));
@@ -216,20 +215,20 @@ public class ChatroomServer extends javax.swing.JFrame {
     }
     
     public void Insert(String table, String... values){
-        String sql="INSERT INTO \""+table+"\" VALUES("+String.join(", ",values)+");";
+        String sql="INSERT INTO "+table+" VALUES("+String.join(", ",values)+");";
         updateDatabase(sql);
     }
     public void Delete(String table, String... conditions){
-        String sql="DELETE FROM \""+table+"\" WHERE ";
+        String sql="DELETE FROM "+table+" WHERE ";
         sql+=String.join(" AND ",conditions);
         updateDatabase(sql);
     }
     public void Update(String table, String[] conditions, String... values){
-        String sql="UPDATE \""+table+"\" SET " + String.join(", ", values) + " WHERE "+String.join(" AND ",conditions)+";";
+        String sql="UPDATE "+table+" SET " + String.join(", ", values) + " WHERE "+String.join(" AND ",conditions)+";";
         updateDatabase(sql);
     }
     public ResultSet Select(String table, String[] conditions, String... columns){
-        String sql="SELECT "+String.join(", ",columns)+" FROM \""+table+"\"";
+        String sql="SELECT "+String.join(", ",columns)+" FROM "+table;
         if(conditions.length>0) sql+= " WHERE "+String.join(" AND ",conditions);
         sql+=";";
         System.out.println(sql);
