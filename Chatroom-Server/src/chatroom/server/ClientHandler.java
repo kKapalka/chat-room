@@ -80,8 +80,7 @@ public class ClientHandler implements Runnable
                                     else{
                                         SendToClient("Login");
                                         login=data[1];
-                                        parent.users.add(data[1]);
-                                        parent.clientOutputStreams.add(client);
+                                        parent.users.add(new User(data[1],client));
                                         SendFullChat();
                                     }
                                 }else{
@@ -96,15 +95,17 @@ public class ClientHandler implements Runnable
                             break;
                         case "Logout": case "Disconnect":
                             SendToClient("Break");
-                            parent.users.remove(data[1]);
-                            parent.clientOutputStreams.remove(client);
+                            parent.users.remove(new User(data[1],client));
                             break;
                         case "Message":
-                            int new_id=createNewId(""+parent.messages,parent.messages.Get(0));
-                            parent.Insert(""+parent.messages,""+new_id,"'"+data[1]+"'","'"+curDate+"'","'"+data[2]+"'");
-                            parent.updateChat();
-                            break;
-                        
+                            if(data.length==3 && data[2].substring(0, 5).equals("/mute")) Mute(data[2].substring(6));
+                            else if(data.length==3 && data[2].substring(0, 7).equals("/unmute")) Unmute(data[2].substring(8));
+                            else{
+                                int new_id=createNewId(""+parent.messages,parent.messages.Get(0));
+                                parent.Insert(""+parent.messages,""+new_id,"'"+data[1]+"'","'"+curDate+"'",data.length<3?"''":"'"+data[2]+"'");
+                                parent.updateChat();
+                                break;
+                            }
                         }
                     
                     
@@ -114,11 +115,27 @@ public class ClientHandler implements Runnable
              {
                 ex.printStackTrace();
                 parent.ServerTextAppend("Utracono połączenie. \n");
-                parent.users.remove(login);
-                parent.clientOutputStreams.remove(client);
+                parent.users.remove(new User(login,client));
              } 
             
-        } 
+        }
+    private void Mute(String username){
+        if(!CheckInUser(username)) SendToClient("Chat","Użytkownik "+username+" nie istnieje");
+        else{
+           try{
+               parent.Insert(""+parent.mutes, ""+createNewId(""+parent.mutes,parent.mutes.Get(0)),"'"+this.login+"'","'"+username+"'");
+               SendToClient("Chat","Wiadomości od użytkownika: "+username +" są dla ciebie niewidoczne.");
+           } catch(SQLException ex){ SendToClient("Error","Błąd połączenia z bazą danych");}
+        }
+    }
+    private void Unmute(String username){
+        if(!CheckInUser(username)) SendToClient("Chat","Użytkownik "+username+" nie istnieje");
+        else{
+               parent.Delete(""+parent.mutes,parent.mutes.Get(1)+" LIKE '"+login+"' AND "+parent.mutes.Get(2)+" LIKE '"+username+"'");
+               SendToClient("Chat","Wiadomości od użytkownika: "+username +" są dla ciebie znów widoczne.");
+           
+        }
+    }
     private void RegisterUser(String[] data){
         try
         {
@@ -188,11 +205,12 @@ public class ClientHandler implements Runnable
         return parent.CheckIn(""+parent.tab_users, conditions);
     }
     private void SendFullChat() throws SQLException{
-        ResultSet rs=parent.Select(MES_TAB,new String[]{},"*");
+        ResultSet rs=parent.SelectFromChat(new String[]{},login);
+        try{
         while(rs.next()){
-            SendToClient("Chat",rs.getTimestamp(parent.messages.Get(2)).toString(),rs.getString(parent.messages.Get(1)),"  "+rs.getString(parent.messages.Get(3)));
-            
+            SendToClient("Chat",rs.getTimestamp(parent.messages.Get(2)).toString(),rs.getString(parent.messages.Get(1)),"  "+rs.getString(parent.messages.Get(3)));    
         }
+        }catch (NullPointerException ex){}
         SendToClient("Chat","Zalogowano");
     }
     

@@ -28,7 +28,6 @@ public class ServerStart implements Runnable
         {
             try 
             {
-                parent.clientOutputStreams=new ArrayList<>();
                 parent.users=new ArrayList<>();
                 ServerSocket serversocket = new ServerSocket(2222);
                 while (true) 

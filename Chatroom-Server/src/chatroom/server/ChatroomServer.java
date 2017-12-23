@@ -48,11 +48,7 @@ public class ChatroomServer extends javax.swing.JFrame {
     /**
      * Zmienna przechowująca listę strumieni wyjścia do klientów
      */
-    ArrayList<PrintWriter> clientOutputStreams;
-    /**
-     * Zmienna przechowująca listę klientów
-     */
-    ArrayList<String> users;
+    ArrayList<User> users;
     /**
      * Klasa służąca wyłącznie do przesyłania e-maili
      */
@@ -252,17 +248,15 @@ public class ChatroomServer extends javax.swing.JFrame {
     }
     public void updateChat() throws SQLException{
         
-        for(PrintWriter temp:clientOutputStreams){
-            ResultSet rs=Select(""+messages,new String[]{messages.Get(2)+" IN (SELECT MAX("+messages.Get(2)+") FROM "+messages+")"},"*");
+        for(User temp:users){
+            ResultSet rs=SelectFromChat(new String[]{messages.Get(0)+" IN (SELECT MAX("+messages.Get(0)+") FROM "+messages+")"},temp.name);
             
             while(rs.next()){
-                temp.println(String.join(DELIMITER,"Chat",rs.getTimestamp(messages.Get(2)).toString(),rs.getString(messages.Get(1)),"  "+rs.getString(messages.Get(3))));
-                temp.flush();
+                temp.OS.println(String.join(DELIMITER,"Chat",rs.getTimestamp(messages.Get(2)).toString(),rs.getString(messages.Get(1)),"  "+rs.getString(messages.Get(3))));
+                temp.OS.flush();
             }
-            
         }
     }
-    
     public void Insert(String table, String... values){
         String sql="INSERT INTO "+table+" VALUES("+String.join(", ",values)+");";
         updateDatabase(sql);
@@ -282,6 +276,12 @@ public class ChatroomServer extends javax.swing.JFrame {
         sql+=";";
         System.out.println(sql);
         return queryDatabase(sql);
+    }
+    public ResultSet SelectFromChat(String[] conditions, String user){
+        String[] newConditions=new String[conditions.length+1];
+        for(int i=0;i<conditions.length;i++) newConditions[i]=conditions[i];
+        newConditions[conditions.length]=messages.Get(1)+" NOT IN (SELECT "+mutes.Get(2)+" FROM "+mutes+" WHERE "+mutes.Get(1)+" = '"+user+"')";
+        return Select(""+messages,newConditions,"*");
     }
     public Boolean CheckIn(String table, String[] conditions){
         try{
