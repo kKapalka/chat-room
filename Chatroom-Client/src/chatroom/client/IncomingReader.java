@@ -44,8 +44,7 @@ import java.util.Arrays;
                             }
                             break;
                          case "Login":
-                             if (data.length==1)
-                             parent.SwitchPanels("Chat");
+                             if (data.length==1) parent.SwitchPanels("Chat");
                              break;
                          case "Chat":
                              parent.ChatTextAppend(data);

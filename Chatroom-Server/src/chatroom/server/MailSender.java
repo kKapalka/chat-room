@@ -19,6 +19,7 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+
 public class MailSender {
     String from,username,password;
     MailSender(){
@@ -27,15 +28,21 @@ public class MailSender {
       username = "chatroom.pwsztar@gmail.com";//change accordingly
       password = "poszlaoladoprzedszkola";//change accordingly
     }
+
+    /**
+     * Funkcja ma za zadanie wyslac email na podany adres. Email zawiera kod, potrzebny do weryfikacji konta.
+     * @param to email adresata
+     * @param code kod weryfikacyjny
+     */
     public void Send(String to, String code){
       Properties props = new Properties();
       props.put("mail.smtp.auth", "true");
       props.put("mail.smtp.starttls.enable", "true");
       props.put("mail.smtp.host","smtp.gmail.com");
       props.put("mail.smtp.port", "587");
-      //props.put("mail.smtp.ssl.enable", "true");
+      
 
-      // Get the Session object.
+      
       Session session = Session.getInstance(props,
          new javax.mail.Authenticator() {
             @Override

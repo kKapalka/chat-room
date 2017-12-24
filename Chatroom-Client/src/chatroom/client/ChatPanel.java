@@ -19,6 +19,11 @@ public class ChatPanel extends javax.swing.JPanel {
     public ChatPanel() {
         initComponents();
     }
+
+    /**
+     *
+     * @param name
+     */
     public void setUserName(String name){
         this.username=name;
     }
@@ -93,10 +98,19 @@ public class ChatPanel extends javax.swing.JPanel {
         client.SendData("Message"+DELIMITER+username+DELIMITER+MessageInput.getText());
        MessageInput.setText("");
     }//GEN-LAST:event_SendButtonActionPerformed
+
+    /**
+     *
+     * @param text
+     */
     public void TextAppend(String text){
         Chat.setText(Chat.getText()+text+"\n");
        Chat.setCaretPosition(Chat.getDocument().getLength());
     }
+
+    /**
+     *
+     */
     public void Clear(){
         Chat.setText("");
     }

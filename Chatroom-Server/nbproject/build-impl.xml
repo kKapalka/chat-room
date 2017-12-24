@@ -1221,7 +1221,7 @@ is divided into following sections:
             </fileset>
             <fileset dir="${build.generated.sources.dir}" erroronmissingdir="false">
                 <include name="**/*.java"/>
-                <exclude name="*.java"/>
+                
             </fileset>
             <arg line="${javadoc.endorsed.classpath.cmd.line.arg}"/>
         </javadoc>

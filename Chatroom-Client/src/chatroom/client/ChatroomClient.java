@@ -7,7 +7,6 @@ package chatroom.client;
 
 import java.awt.CardLayout;
 import java.awt.Toolkit;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
@@ -24,11 +23,33 @@ import javax.swing.JOptionPane;
  * @author kkapa
  */
 public class ChatroomClient extends javax.swing.JFrame {
-    String login,pass;
+    /**
+     * Login uzytkownika
+     */
+    String login;
+    /**
+     * Haslo uzytkownika 
+     */
+    String pass;
+    /**
+     * Adres Socketu serwera - tutaj pod localhostem, port 2222
+     */
     Socket server;
+    /**
+     * Kanal odczytu informacji od serwera
+     */
     BufferedReader reader;
+    /**
+     * Kanal zapisu informacji na serwer
+     */
     PrintWriter writer;
+    /**
+     * Stala opisujaca delimiter dla ciagu informacji przesylanego miedzy klientem a serwerem
+     */
     static final String DELIMITER=";end;";
+    /**
+     * Watek nasluchujacy odpowiedzi od serwera
+     */
     Thread IncomingReader;
     /**
      * Creates new form ChatroomClient
@@ -59,7 +80,8 @@ public class ChatroomClient extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
     /**
      * Funkcja odpowidzialna za wyświetlenie odpowiedniego panelu w odpowiednim momencie:
-     * <p> Panel czatu - po zalogowaniu, Panel logowania - po wylogowaniu
+     * <p> Panel czatu - po zalogowaniu, Panel logowania - po wylogowaniu</p>
+     * <p> Z funkcji korzysta klasa: IncomingReader, 
      * @param state - panel, który chcemy wyświetlić
      */
     public void SwitchPanels(String state){
@@ -80,7 +102,7 @@ public class ChatroomClient extends javax.swing.JFrame {
         setLocation((Toolkit.getDefaultToolkit().getScreenSize().width)/2 - getWidth()/2, (Toolkit.getDefaultToolkit().getScreenSize().height)/2 - getHeight()/2);
     }
     /**
-     * Funkcja służy do komunikacji klienta z serwerem. Łączy listę ciągów znakowych w jedną wiadomość
+     * Funkcja służy do komunikacji klienta z serwerem. Lączy listę ciągów znakowych w jedną wiadomość
      * (z elementami składowymi rozdzielonymi delimiterem ";end;"), wysyła ją do serwera
      * i nasłuchuje odpowiedzi.
      * <p> W razie gdy to jest potrzebne (podczas rejestracji, weryfikacji i logowania) funkcja dodatkowo próbuje połączyć

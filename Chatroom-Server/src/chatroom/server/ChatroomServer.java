@@ -6,16 +6,13 @@
 package chatroom.server;
 
 import java.awt.Toolkit;
-import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,31 +23,31 @@ import java.util.logging.Logger;
 public class ChatroomServer extends javax.swing.JFrame {
     //database variables
     /**
-     * Zmienna przechowująca zapytania do bazy danych
+     * Zmienna przechowujaca zapytania do bazy danych
      */
     Statement statement;
     /**
-     * Zmienna przechowująca odnośnik do połączenia z bazą danych
+     * Zmienna przechowujaca odnosnik do polaczenia z baza danych
      */
     Connection conn;
     /**
-     * URL do bazy danych przechowującej informacje o czacie
+     * URL do bazy danych przechowujacej informacje o czacie
      */
     String url = "jdbc:postgresql://localhost:5432/chatroom-db";
     /**
-     * Stała przechowująca znak stopu między kolejnymi fragmentami przesyłanej informacji
+     * Stala przechowujaca znak stopu miedzy kolejnymi fragmentami przesylanej informacji
      */
     static final String DELIMITER=";end;";
     /**
-     * Zmienna przechowująca dane właściciela bazy danych, w celu pomyślnego zalogowania się do niej
+     * Zmienna przechowujaca dane wlasciciela bazy danych, w celu pomyslnego zalogowania sie do niej
      */
     static final String LOGIN="postgres",PASS="poszlaoladoprzedszkola";
     /**
-     * Zmienna przechowująca listę strumieni wyjścia do klientów
+     * Zmienna przechowujaca liste strumieni wyjscia do klientow
      */
     ArrayList<User> users;
     /**
-     * Klasa służąca wyłącznie do przesyłania e-maili
+     * Klasa sluzaca wylacznie do przesylania e-maili
      */
     static MailSender sender=new MailSender();
     
@@ -59,10 +56,10 @@ public class ChatroomServer extends javax.swing.JFrame {
     static final String MES_TAB="messages",MES_ID_COL="id",MES_COL="message",TIME_COL="sendtime",SEND_COL="username";
     //order: id, username, sendtime, message   
     /**
-     * <p>Funkcja tworzy nowy formularz ChatroomServer, i wyśrodkowuje go na ekranie</p>
-     * <p>Łączy się automatycznie z bazą danych i uruchamia wątek ServerStart zbierający
-     * połączenia od użytkowników, lub informuje administratora o błędzie połączenia z bazą.
-     * Jeśli połączenie się uda, guzik łączenia ręcznego się zdezaktywuje.</p>
+     * <p>Funkcja tworzy nowy formularz ChatroomServer, i wysrodkowuje go na ekranie</p>
+     * <p>Laczy sie automatycznie z baza danych i uruchamia watek ServerStart zbierajacy
+     * polaczenia od uzytkownikow, lub informuje administratora o bledzie polaczenia z baza.
+     * Jesli polaczenie sie uda, guzik laczenia recznego sie zdezaktywuje.</p>
      */
     public ChatroomServer() {
         initComponents();
@@ -89,6 +86,7 @@ public class ChatroomServer extends javax.swing.JFrame {
         ServerText = new javax.swing.JTextPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Chatroom Server");
         setMinimumSize(new java.awt.Dimension(385, 505));
 
         Launch.setText("Uruchom ręcznie");
@@ -140,17 +138,17 @@ public class ChatroomServer extends javax.swing.JFrame {
         DbConnect();
         Launch.setEnabled(false);
         }catch (SQLException ex){
-            ServerText.setText("Nie połączono z bazą.\nSpróbuj ponownie");
+            ServerText.setText("Nie polaczono z baza.\nSprobuj ponownie");
         }
             Thread starter = new Thread(new ServerStart(this));
             starter.start();
     }
     /**
-     * <p>Służy do ręcznego połączenia z bazą danych oraz uruchomienia serwera,
-     * jeżeli automatyczne połączenie się nie uda - mechanizm fail-safe.</p>
-     * <p>Jeżeli połączenie się uda, guzik się zdezaktywuje. Po połączeniu z bazą 
-     * uruchamiany jest wątek SerwerStart, zbierający połączenia od użytkowników.</p>
-     * @param evt - nasłuchuje naciśnięcia guzika "Połącz manualnie"
+     * <p>Sluzy do recznego polaczenia z baza danych oraz uruchomienia serwera,
+     * jezeli automatyczne polaczenie sie nie uda - mechanizm fail-safe.</p>
+     * <p>Jezeli polaczenie sie uda, guzik sie zdezaktywuje. Po polaczeniu z baza 
+     * uruchamiany jest watek SerwerStart, zbierajacy polaczenia od uzytkownikow.</p>
+     * @param evt nasluchuje nacisniecia guzika "Polacz manualnie"
      */
     private void LaunchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LaunchActionPerformed
         Launch();
@@ -165,7 +163,7 @@ public class ChatroomServer extends javax.swing.JFrame {
     }//GEN-LAST:event_ClientListActionPerformed
 
     /**
-     * @param args Nieużywany
+     * @param args Nieuzywany
      */
     public static void main(String args[]) {
         /* Set the Windows look and feel */
@@ -196,17 +194,17 @@ public class ChatroomServer extends javax.swing.JFrame {
     }
 
     /**
-     * <p>Funkcja służy do łączenia z bazą danych.</p><p>
-     * Wykorzystuje zmienne zadeklarowane wewnątrz programu: <b>URL, login, hasło</b>
-     * aby wykonać połączenie. Gdy to się uda, administrator jest o tym informowany.</p>
-     * <p>Funkcja stosowana jest w dwóch miejscach: w konstruktorze (automatyczne
-     * połączenie) oraz wewnątrz funkcji LaunchActionPerformed (manualne połączenie)</p>
-     * @throws SQLException jeżeli z jakiegokolwiek powodu połączenie się nie uda
+     * <p>Funkcja sluzy do laczenia z baza danych.</p><p>
+     * Wykorzystuje zmienne zadeklarowane wewnatrz programu: <b>URL, login, haslo</b>
+     * aby wykonac polaczenie. Gdy to sie uda, administrator jest o tym informowany.</p>
+     * <p>Funkcja stosowana jest w dwoch miejscach: w konstruktorze (automatyczne
+     * polaczenie) oraz wewnatrz funkcji LaunchActionPerformed (manualne polaczenie)</p>
+     * @throws SQLException jezeli z jakiegokolwiek powodu polaczenie sie nie uda
      */
     
     private void DbConnect() throws SQLException{
         conn = DriverManager.getConnection(url,LOGIN,PASS);
-        ServerText.setText("Połączono z bazą:\n"+url+"\n");
+        ServerText.setText("Polaczono z baza:\n"+url+"\n");
         InitializeDatabaseInfo();
     }
     
@@ -250,15 +248,22 @@ public class ChatroomServer extends javax.swing.JFrame {
         for(int i=1;i<=rsmd.getColumnCount();i++) table.addColumn(rsmd.getColumnName(i), rsmd.getColumnTypeName(i));
     }
     /**
-     * <p> Funkcja służy do podpinania tekstu do panelu administratora.<p>
-     * <p> Stosowana jest w klasach: ServerStart, ClientHandler, które nie mają
-     * dostępu do prywatnych elementów klasy ChatroomServer.</p>
-     * @param text - tekst do wyświetlenia na panelu administratora
+     * <p> Funkcja sluzy do podpinania tekstu do panelu administratora.</p>
+     * <p> Stosowana jest w klasach: ServerStart, ClientHandler, ktore nie maja
+     * dostepu do prywatnych elementow klasy ChatroomServer.</p>
+     * @param text tekst do wyswietlenia na panelu administratora
      */
     public void ServerTextAppend(String text){
         ServerText.setText(ServerText.getText()+text);
         ServerText.setCaretPosition(ServerText.getDocument().getLength());
     }
+
+    /**
+     * Funkcja odpowiedzialna jest za aktualizacje czatow wszystkich aktywnych klientow 
+     * <p>Najpierw formuluje dla kazdego klienta zapytanie do bazy, ktore zwraca ostatnia zapisana wiadomosc od niewyciszonego uzytkownika. </p>
+     * <p>Potem z zestawu wynikowego komponuje wiadomość do klienta i wysyła.</p>
+     * @throws SQLException jezeli zapytanie jest bledne lub nie ma polaczenia z baza danych
+     */
     public void updateChat() throws SQLException{
         
         for(User temp:users){
@@ -270,19 +275,51 @@ public class ChatroomServer extends javax.swing.JFrame {
             }
         }
     }
+
+    /**
+     * Funkcja komponuje kwerende aktualizacji tabeli na podstawie zmiennych 'table' i 'values', a potem nanosi zmiany
+     * <p> Trzeba pamietac o tym, ze, wprowadzajac zmienne typu tekstowego koniecznym jest ujecie tekstu w apostofy</p>
+     * @param table - nazwa tabeli, do ktorej wstawiamy wartosci
+     * @param values - wartosci, ktore chcemy wstawic
+     */
     public void Insert(String table, String... values){
         String sql="INSERT INTO "+table+" VALUES("+String.join(", ",values)+");";
         updateDatabase(sql);
     }
+
+    /**
+     * Funkcja komponuje kwerende usuwania wartosci z tabeli na podstawie zmiennych 'table' i 'conditions', a potem nanosi zmiany
+     * <p> Trzeba pamietac o tym, ze, porownujac zmienne typu tekstowego koniecznym jest ujecie tekstu w apostofy</p>
+     * @param table nazwa tabeli, z ktorej usuwany rekordy
+     * @param conditions warunki, na podstawie ktorych wybieramy rekordy do usuniecia
+     */
     public void Delete(String table, String... conditions){
         String sql="DELETE FROM "+table+" WHERE ";
         sql+=String.join(" AND ",conditions);
         updateDatabase(sql);
     }
+
+    /**
+     * Funkcja komponuje kwerende aktualizacji rekordow w tabeli na podstawie zmiennych 'table' , 'conditions' i 'values', a potem nanosi zmiany
+     * <p> Trzeba pamietac o tym, ze, wprowadzajac lub porownujac zmienne typu tekstowego koniecznym jest ujecie tekstu w apostofy</p>
+     * <p> Format pojedynczego stringa z listy 'values' - 'nazwa-kolumny = wartosc'</p>
+     * @param table tabela do aktualizacji
+     * @param conditions warunki, na podstawie ktorych wybieramy rekordy do aktualizacji
+     * @param values 'nazwy kolumn do aktualizacji oraz wartosc do wstawienia'
+     */
     public void Update(String table, String[] conditions, String... values){
         String sql="UPDATE "+table+" SET " + String.join(", ", values) + " WHERE "+String.join(" AND ",conditions)+";";
         updateDatabase(sql);
     }
+
+    /**
+     * Funkcja komponuje kwerende wyboru rekordow z tabeli na podstawie zmiennych 'table' , 'conditions' i 'columns'.
+     * <p> Trzeba pamietac o tym, ze, porownujac zmienne typu tekstowego koniecznym jest ujecie tekstu w apostofy</p>
+     * @param table tabela do aktualizacji
+     * @param conditions warunki, na podstawie ktorych wybieramy rekordy do aktualizacji
+     * @param columns 'nazwy kolumn do pobrania'
+     * @return zestaw wynikowy zgodny z podanymi kryteriami
+     */
     public ResultSet Select(String table, String[] conditions, String... columns){
         String sql="SELECT "+String.join(", ",columns)+" FROM "+table;
         if(conditions.length>0) sql+= " WHERE "+String.join(" AND ",conditions);
@@ -290,17 +327,33 @@ public class ChatroomServer extends javax.swing.JFrame {
         System.out.println(sql);
         return queryDatabase(sql);
     }
+
+    /**
+     * Funkcja jest specjalnym przypadkiem funkcji Select(table, conditions, columns).
+     * <p> Ma za zadanie wybrać tylko te rekordy z tabeli 'messages', gdzie użytkownik nie był wyciszony przez odbiorcę
+     * @param conditions standardowe warunki podawane do funkcji Select
+     * @param user nazwa odbiorcy wiadomości
+     * @return zestaw wynikowy zgodny z podanymi kryteriami
+     */
     public ResultSet SelectFromChat(String[] conditions, String user){
         String[] newConditions=new String[conditions.length+1];
         for(int i=0;i<conditions.length;i++) newConditions[i]=conditions[i];
         newConditions[conditions.length]=messages.Get(1)+" NOT IN (SELECT "+mutes.Get(2)+" FROM "+mutes+" WHERE "+mutes.Get(1)+" = '"+user+"')";
         return Select(""+messages,newConditions,"*");
     }
+
+    /**
+     * Test - czy rekord o podanych cechach istnieje w tabeli
+     * <p> Trzeba pamietac o tym, ze, porownujac zmienne typu tekstowego koniecznym jest ujecie tekstu w apostofy</p>
+     * @param table sprawdzana tabela
+     * @param conditions kryteria testu
+     * @return true jezeli dany rekord istnieje w tabeli
+     */
     public Boolean CheckIn(String table, String[] conditions){
         try{
         return Select(table, conditions, "*").next();
         } catch (SQLException ex){
-            ServerTextAppend("Błąd podczas sprawdzania bazy danych");
+            ServerTextAppend("Blad podczas sprawdzania bazy danych");
             return null;
         }
     }
@@ -311,7 +364,7 @@ public class ChatroomServer extends javax.swing.JFrame {
         statement=conn.createStatement();
         rs=statement.executeUpdate(sql);
         }catch (SQLException ex){
-            ServerTextAppend("Błąd w trakcie aktualizacji tabeli.");
+            ServerTextAppend("Blad w trakcie aktualizacji tabeli.");
         }
     }
     private ResultSet queryDatabase(String sql){
@@ -320,11 +373,15 @@ public class ChatroomServer extends javax.swing.JFrame {
         ResultSet rs=statement.executeQuery(sql);
         return rs;
         }catch (SQLException ex){
-            ServerTextAppend("Błąd podczas wybierania wartości z bazy.");
+            ServerTextAppend("Blad podczas wybierania wartosci z bazy.");
         }
         return null;
     }
     
+    /**
+     * Funkcja służy do przekazywania odnośnika do prywatnego elementu klasy ChatroomServer
+     * @return odnośnik do panelu tekstowego ServerText
+     */
     public javax.swing.JTextPane getServerText(){
         return ServerText;
     }

@@ -23,16 +23,33 @@ import java.sql.SQLException;
  */
 public class ClientHandler implements Runnable	
    {
+        /**
+         * Kanal odczytu informacji od klienta
+         */
        BufferedReader reader;
+       /**
+        * Adres socketu klienta
+        */
        Socket sock;
+       /**
+        * Kanal zapisu informacji do klienta
+        */
        PrintWriter client;
+       /**
+        * Odnosnik do glownej aplikacji serwera
+        */
        ChatroomServer parent;
+       /**
+        * Login uzytkownika
+        */
        String login;
-       //Tablenames and Column_names used in our custom database - defining constants. Set according to your own database
-       static final String USER_TAB="users",LOGIN_COL="login",PASS_COL="pass",EMAIL_COL="email",ID_COL="id",CODE_COL="code",VER_COL="verified";
-       //order in USER_TAB: id,login,pass,email,code,verified
-       static final String MES_TAB="messages",MES_ID_COL="id",MES_COL="message",TIME_COL="sendtime",SEND_COL="username";
-        //order in messages: message_id,user,sendtime,message
+
+    /**
+     * Konstruktor klasy ClientHandler, uzywany przez klase ServerStart przy probie logowania, rejestracji,weryfikacji przez klienta
+     * @param clientSocket socket klienta
+     * @param user kanal zapisu do klienta
+     * @param par odnosnik do glownej aplikacji
+     */
     public ClientHandler(Socket clientSocket, PrintWriter user, ChatroomServer par) 
        {
             parent=par;
@@ -73,7 +90,7 @@ public class ClientHandler implements Runnable
                         case "Login":
                             try{
                                 if(CheckInUser(data[1],Encrypt(data[2]))){
-                                    if(parent.users.contains(data[1])){
+                                    if(parent.users.contains(new User(data[1],client))){
                                         SendToClient("Error","LOGIN_IN_USE","Użytkownik o takim loginie jest już zalogowany");
                                         SendToClient("Break");
                                     }
@@ -98,32 +115,32 @@ public class ClientHandler implements Runnable
                             parent.users.remove(new User(data[1],client));
                             break;
                         case "Message":
-                            if(data.length==3 && data[2].substring(0,1).equals("/")){
-                                if(data[2].length()>5){ if(data[2].substring(0, 5).equals("/mute"))
-                                    Mute(data[2].substring(6));
+                            if(data.length==3){
+                                if(HasMore("/mute",data[2]))  Mute(data[2].substring(6));
+                                else if (HasMore("/unmute",data[2])) Unmute(data[2].substring(8));
+                                else if(data[2].substring(0,1).equals("/")) SendToClient("Chat","Niepoprawna komenda");
+                                else{
+                                    int new_id=createNewId(""+parent.messages,parent.messages.Get(0));
+                                    parent.Insert(""+parent.messages,""+new_id,"'"+data[1]+"'","'"+curDate+"'",data.length<3?"''":"'"+data[2]+"'");
+                                    parent.updateChat();
                                 }
-                                else if(data[2].length()>7){ if (data[2].substring(0, 7).equals("/unmute")) Unmute(data[2].substring(8));
-                                }
-                                }
-                            else{
-                                int new_id=createNewId(""+parent.messages,parent.messages.Get(0));
-                                parent.Insert(""+parent.messages,""+new_id,"'"+data[1]+"'","'"+curDate+"'",data.length<3?"''":"'"+data[2]+"'");
-                                parent.updateChat();
-                                break;
                             }
-                        }
-                    
-                    
-                } 
+                            break;
+                    }
+                }
              } 
              catch (IOException | SQLException ex) 
              {
-                ex.printStackTrace();
                 parent.ServerTextAppend("Utracono połączenie. \n");
                 parent.users.remove(new User(login,client));
              } 
             
         }
+    private Boolean HasMore(String word, String text){
+        if(text.length()<word.length()+2) return false;
+        return(text.substring(0,word.length()).equals(word));
+    }
+    
     private void Mute(String username){
         if(!CheckInUser(username)) SendToClient("Chat","Użytkownik "+username+" nie istnieje");
         else{
@@ -150,7 +167,7 @@ public class ClientHandler implements Runnable
                 String verifyCode=randomVerifyCode();
                 parent.Insert(""+parent.tab_users,""+createNewId(""+parent.tab_users,parent.tab_users.Get(0)),"'"+data[1]+"'","'"+Encrypt(data[2])+"'","'"+data[3]+"'","'"+verifyCode+"'","false");
                 SendToClient("Info","CODE_SENT","Kod weryfikacyjny przesłano na e-mail: "+data[3]);
-                //parent.sender.Send(data[3],verifyCode);
+                parent.sender.Send(data[3],verifyCode);
             }
         }
         catch (NoSuchAlgorithmException|SQLException ex)
@@ -186,6 +203,16 @@ public class ClientHandler implements Runnable
         return result.toString();
     }
     
+    /**
+     * Funkcja komponuje i przesyla wiadomosc do uzytkownika.
+     * <p>Jest wyroznionych 5 typow wiadomosci:</p>
+     * <p>Error - sygnal bledu</p>
+     * <p>Info - sygnal informacji</p>
+     * <p>Login - sygnal logowania do czatu</p>
+     * <p>Message - sygnal przesylania nowej wiadomosci do czatu</p>
+     * <p>Break - sygnal przerwania polaczenia z serwerem</p>
+     * @param elements fragmenty wiadomosci do polaczenia i przeslania klientowi
+     */
     public void SendToClient(CharSequence... elements){
         String text=String.join(DELIMITER, elements);
         client.println(text);
@@ -193,8 +220,11 @@ public class ClientHandler implements Runnable
     }
     
     /**
-     * 
-     * @param data - informacje do sprawdzenia w tabeli użytkowników, w kolejności: login, hasło,email,kod weryfikacji, czy jest zweryfikowane
+     * Specyficzny przypadek funkcji Check z klasy ChatroomServer - ma za zadanie sprawdzac wystepowanie klienta w bazie
+     * <p> Moze przyjac od 1 do 5 zmiennych typu String. Na ich podstawie komponuje kwerende CheckIn(), gdzie 
+     * kazda kolejna kolumne testuje na wystepowanie kazdej kolejnej wartosci.</p>
+     * <p> Funkcja korzysta ze stalej kompozycji tabeli uzytkownikow w bazie danych.</p>
+     * @param data informacje do sprawdzenia w tabeli użytkowników, w kolejności: login, hasło,email,kod weryfikacji, czy jest zweryfikowane
      * @return true jeżeli dany rekord istnieje w tabeli
      */
     public Boolean CheckInUser(String... data){

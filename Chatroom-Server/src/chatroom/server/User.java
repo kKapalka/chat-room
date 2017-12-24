@@ -12,7 +12,13 @@ import java.io.PrintWriter;
  * @author kkapa
  */
 public class User {
+    /**
+     * nazwa uzytkownika
+     */
     String name;
+    /**
+     * Kanal wysylania informacji
+     */
     PrintWriter OS;
     User(String name, PrintWriter OS){
         this.name=name;
