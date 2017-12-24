@@ -69,9 +69,10 @@ public class ChatroomClient extends javax.swing.JFrame {
     private void initComponents() {
 
         Login = new chatroom.client.LoginPanel();
-        Chat = new chatroom.client.ChatPanel();
+        Chat = new chatroom.client.PanelChat();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Chatroom Client");
         getContentPane().setLayout(new java.awt.CardLayout());
         getContentPane().add(Login, "card2");
         getContentPane().add(Chat, "card3");
@@ -247,7 +248,7 @@ public void ChatTextAppend(String[] data){
     Chat.TextAppend(text);
 }    
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private chatroom.client.ChatPanel Chat;
+    private chatroom.client.PanelChat Chat;
     private chatroom.client.LoginPanel Login;
     // End of variables declaration//GEN-END:variables
 }

@@ -14,7 +14,9 @@ import java.awt.Toolkit;
 public class RegisterDialog extends javax.swing.JDialog {
     ChatroomClient Parent;
     /**
-     * Creates new form RegisterDialog
+     * Creates new form RegisterDialog. 
+     * Standardowy konstruktor klasy JDialog.
+     * <p> Dodatkowo wysrodkowuje okno rejestracji oraz ustawia odnosnik do rodzica klasy ChatroomClient
      * @param parent
      * @param modal
      */

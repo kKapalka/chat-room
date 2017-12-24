@@ -9,20 +9,29 @@ package chatroom.client;
  *
  * @author kkapa
  */
-public class ChatPanel extends javax.swing.JPanel {
+public class PanelChat extends javax.swing.JPanel {
+    /**
+     * Odnosnik do glownej aplikacji klienta
+     */
     ChatroomClient client;
+    /**
+     * Stala okreslajaca delimiter miedzy fragmentami informacji przesylanymi mieszy klientem a serwerem
+     */
     static final String DELIMITER=";end;";
+    /**
+     * Nazwa uzytkownika
+     */
     String username="";
     /**
      * Creates new form ChatPanel
      */
-    public ChatPanel() {
+    public PanelChat() {
         initComponents();
     }
 
     /**
-     *
-     * @param name
+     * Funkcja ustawia nazwe uzytkownika w panelu czatu
+     * @param name nazwa uzytkownika
      */
     public void setUserName(String name){
         this.username=name;
@@ -100,8 +109,8 @@ public class ChatPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_SendButtonActionPerformed
 
     /**
-     *
-     * @param text
+     * Funkcja ma za zadanie wstawić nową linijkę tekstu do czatu oraz przesunięcie karety na sam koniec
+     * @param text tekst do podpięcia do okna czatu
      */
     public void TextAppend(String text){
         Chat.setText(Chat.getText()+text+"\n");
@@ -109,7 +118,7 @@ public class ChatPanel extends javax.swing.JPanel {
     }
 
     /**
-     *
+     * Funkcja odpowiada za wyczyszczenie panelu czatu. Korzysta z niej klasa ChatroomClient podczas operacji logowania
      */
     public void Clear(){
         Chat.setText("");

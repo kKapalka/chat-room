@@ -13,7 +13,13 @@ import java.awt.event.KeyEvent;
  * @author kkapa
  */
 public class LoginPanel extends javax.swing.JPanel {
+    /**
+     * Odnosnik do glownej apliakacji klienta
+     */
     ChatroomClient client;
+    /**
+     * Odnosnik do okna dialogowego od rejestracji
+     */
     RegisterDialog dialog;
     /**
      * Creates new form LoginPanel
@@ -40,6 +46,8 @@ public class LoginPanel extends javax.swing.JPanel {
         RegisterButton = new javax.swing.JButton();
         LoginText = new javax.swing.JTextField();
         PassText = new javax.swing.JTextField();
+
+        setToolTipText("");
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
         jLabel1.setText("ChatRoom v1.0");
