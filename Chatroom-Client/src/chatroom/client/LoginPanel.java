@@ -45,7 +45,7 @@ public class LoginPanel extends javax.swing.JPanel {
         jLabel4 = new javax.swing.JLabel();
         RegisterButton = new javax.swing.JButton();
         LoginText = new javax.swing.JTextField();
-        PassText = new javax.swing.JTextField();
+        PassText = new javax.swing.JPasswordField();
 
         setToolTipText("");
 
@@ -96,15 +96,13 @@ public class LoginPanel extends javax.swing.JPanel {
                             .addComponent(LoginButton))
                         .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                             .addContainerGap()
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addComponent(jLabel3)
-                                    .addGap(55, 55, 55)
-                                    .addComponent(PassText))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addComponent(jLabel2)
-                                    .addGap(56, 56, 56)
-                                    .addComponent(LoginText))))))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jLabel2)
+                                .addComponent(jLabel3))
+                            .addGap(55, 55, 55)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(LoginText)
+                                .addComponent(PassText)))))
                 .addContainerGap(32, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -152,7 +150,7 @@ public class LoginPanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton LoginButton;
     private javax.swing.JTextField LoginText;
-    private javax.swing.JTextField PassText;
+    private javax.swing.JPasswordField PassText;
     private javax.swing.JButton RegisterButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

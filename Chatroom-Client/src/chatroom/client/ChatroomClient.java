@@ -174,6 +174,7 @@ public class ChatroomClient extends javax.swing.JFrame {
     public void Message(String type,String title, String message){
         int messagetype=0;
         if ("Error".equals(type)) messagetype=JOptionPane.ERROR_MESSAGE;
+        
         if ("Info".equals(type)) messagetype=JOptionPane.INFORMATION_MESSAGE;
         JOptionPane.showMessageDialog(this,
             message,

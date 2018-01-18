@@ -1,0 +1,18 @@
+Konieczne: wyœwietlanie historii:
+Mo¿liwoœci wykonania:
+#1: Checkbox na wyœwietlanie historii wiadomoœci (wszystkich lub filtrowanych)
+#2: Komenda (show history)
+
+Konieczne do wykonania:
+-tabela od logowañ: id, nazwa, data logowania
+
+Bug:
+#1: niezweryfiowany u¿ytkownik nie powinien móc siê zalogowaæ
+(Rozwi¹zanie: CheckInUser)
+(Rozwi¹zanie: replace("'",";apos;") i z powrotem)
+#2: nie mo¿na wrzucaæ wiadomoœci z apostrofami
+
+Opcjonalne:
+
+#1: Pokoje czatowe
+#2: Generowanie bazy danych w przypadku jej braku

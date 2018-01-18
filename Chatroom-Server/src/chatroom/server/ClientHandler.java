@@ -121,7 +121,7 @@ public class ClientHandler implements Runnable
                                 else if(data[2].substring(0,1).equals("/")) SendToClient("Chat","Niepoprawna komenda");
                                 else{
                                     int new_id=createNewId(""+parent.messages,parent.messages.Get(0));
-                                    parent.Insert(""+parent.messages,""+new_id,"'"+data[1]+"'","'"+curDate+"'",data.length<3?"''":"'"+data[2]+"'");
+                                    parent.Insert(""+parent.messages,""+new_id,"'"+data[1]+"'","'"+curDate+"'","'"+data[2]+"'");
                                     parent.updateChat();
                                 }
                             }

@@ -33,7 +33,7 @@ public class ChatroomServer extends javax.swing.JFrame {
     /**
      * URL do bazy danych przechowujacej informacje o czacie
      */
-    String url = "jdbc:postgresql://localhost:5432/chatroom-db";
+    String url = "jdbc:postgresql://localhost:5432/chatroomdb";
     /**
      * Stala przechowujaca znak stopu miedzy kolejnymi fragmentami przesylanej informacji
      */
@@ -51,7 +51,11 @@ public class ChatroomServer extends javax.swing.JFrame {
      */
     static MailSender sender=new MailSender();
     
+    DB_Handler handler;
+    
     Table tab_users, messages, mutes;
+    
+    DBLogin dialog;
     
     static final String MES_TAB="messages",MES_ID_COL="id",MES_COL="message",TIME_COL="sendtime",SEND_COL="username";
     //order: id, username, sendtime, message   
@@ -64,7 +68,6 @@ public class ChatroomServer extends javax.swing.JFrame {
     public ChatroomServer() {
         initComponents();
         setToMiddle();
-        Launch(); 
     }
 
     private void setToMiddle(){
@@ -89,7 +92,7 @@ public class ChatroomServer extends javax.swing.JFrame {
         setTitle("Chatroom Server");
         setMinimumSize(new java.awt.Dimension(385, 505));
 
-        Launch.setText("Uruchom ręcznie");
+        Launch.setText("Połącz z bazą danych");
         Launch.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 LaunchActionPerformed(evt);
@@ -115,7 +118,7 @@ public class ChatroomServer extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(Launch)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 143, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 119, Short.MAX_VALUE)
                 .addComponent(ClientList)
                 .addContainerGap())
             .addComponent(jScrollPane1)
@@ -133,15 +136,23 @@ public class ChatroomServer extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    private void Launch(){
-        try{
-        DbConnect();
+    public void Launch(){
+       
+        dialog= new DBLogin (this,true);
+        dialog.pack();
+        dialog.setVisible (true);
+        /*DbConnect();
         Launch.setEnabled(false);
         }catch (SQLException ex){
             ServerText.setText("Nie polaczono z baza.\nSprobuj ponownie");
         }
             Thread starter = new Thread(new ServerStart(this));
-            starter.start();
+            starter.start();*/
+    }
+    public void Start(){
+        ServerText.setText("Połączono się z bazą: "+handler.server+"\n");
+        Thread starter = new Thread(new ServerStart(this));
+        starter.start();
     }
     /**
      * <p>Sluzy do recznego polaczenia z baza danych oraz uruchomienia serwera,
@@ -194,60 +205,6 @@ public class ChatroomServer extends javax.swing.JFrame {
     }
 
     /**
-     * <p>Funkcja sluzy do laczenia z baza danych.</p><p>
-     * Wykorzystuje zmienne zadeklarowane wewnatrz programu: <b>URL, login, haslo</b>
-     * aby wykonac polaczenie. Gdy to sie uda, administrator jest o tym informowany.</p>
-     * <p>Funkcja stosowana jest w dwoch miejscach: w konstruktorze (automatyczne
-     * polaczenie) oraz wewnatrz funkcji LaunchActionPerformed (manualne polaczenie)</p>
-     * @throws SQLException jezeli z jakiegokolwiek powodu polaczenie sie nie uda
-     */
-    
-    private void DbConnect() throws SQLException{
-        conn = DriverManager.getConnection(url,LOGIN,PASS);
-        ServerText.setText("Polaczono z baza:\n"+url+"\n");
-        InitializeDatabaseInfo();
-    }
-    
-    private void InitializeDatabaseInfo() throws SQLException{
-        ArrayList<Table> tables=GetAllTables();
-        tables.forEach((temp) -> {
-            try {
-                GetAllColumns(temp);
-            } catch (SQLException ex) {
-                Logger.getLogger(ChatroomServer.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            if(null != ""+temp)switch (""+temp) {
-                case "users":
-                    tab_users=temp;
-                    break;
-                case "messages":
-                    messages=temp;
-                    break;
-                case "mutes":
-                    mutes=temp;
-                    break;
-                default:
-                    break;
-            }
-        });
-        
-    }
-    private ArrayList<Table> GetAllTables() throws SQLException{
-        ArrayList<Table> tables=new ArrayList<>();
-        ResultSet rs = conn.getMetaData().getTables("Chatroom", null, "%", null);
-        while (rs.next()) {
-          if (rs.getString(4)!=null && rs.getString(4).equalsIgnoreCase("TABLE")) {
-                tables.add(new Table(rs.getString(3)));
-            }
-        }
-        return tables;
-    }
-    private void GetAllColumns(Table table) throws SQLException{
-        ResultSet rs = conn.createStatement().executeQuery("select * from "+table.name);
-        ResultSetMetaData rsmd = rs.getMetaData();
-        for(int i=1;i<=rsmd.getColumnCount();i++) table.addColumn(rsmd.getColumnName(i), rsmd.getColumnTypeName(i));
-    }
-    /**
      * <p> Funkcja sluzy do podpinania tekstu do panelu administratora.</p>
      * <p> Stosowana jest w klasach: ServerStart, ClientHandler, ktore nie maja
      * dostepu do prywatnych elementow klasy ChatroomServer.</p>
@@ -284,7 +241,7 @@ public class ChatroomServer extends javax.swing.JFrame {
      */
     public void Insert(String table, String... values){
         String sql="INSERT INTO "+table+" VALUES("+String.join(", ",values)+");";
-        updateDatabase(sql);
+        handler.updateDatabase(sql);
     }
 
     /**
@@ -296,7 +253,7 @@ public class ChatroomServer extends javax.swing.JFrame {
     public void Delete(String table, String... conditions){
         String sql="DELETE FROM "+table+" WHERE ";
         sql+=String.join(" AND ",conditions);
-        updateDatabase(sql);
+        handler.updateDatabase(sql);
     }
 
     /**
@@ -309,7 +266,7 @@ public class ChatroomServer extends javax.swing.JFrame {
      */
     public void Update(String table, String[] conditions, String... values){
         String sql="UPDATE "+table+" SET " + String.join(", ", values) + " WHERE "+String.join(" AND ",conditions)+";";
-        updateDatabase(sql);
+        handler.updateDatabase(sql);
     }
 
     /**
@@ -325,7 +282,7 @@ public class ChatroomServer extends javax.swing.JFrame {
         if(conditions.length>0) sql+= " WHERE "+String.join(" AND ",conditions);
         sql+=";";
         System.out.println(sql);
-        return queryDatabase(sql);
+        return handler.queryDatabase(sql);
     }
 
     /**
@@ -357,26 +314,7 @@ public class ChatroomServer extends javax.swing.JFrame {
             return null;
         }
     }
-    private void updateDatabase(String sql){
-        int rs;
-        try{
-            System.out.println(sql);
-        statement=conn.createStatement();
-        rs=statement.executeUpdate(sql);
-        }catch (SQLException ex){
-            ServerTextAppend("Blad w trakcie aktualizacji tabeli.");
-        }
-    }
-    private ResultSet queryDatabase(String sql){
-        try{
-        statement=conn.createStatement();
-        ResultSet rs=statement.executeQuery(sql);
-        return rs;
-        }catch (SQLException ex){
-            ServerTextAppend("Blad podczas wybierania wartosci z bazy.");
-        }
-        return null;
-    }
+    
     
     /**
      * Funkcja służy do przekazywania odnośnika do prywatnego elementu klasy ChatroomServer

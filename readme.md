@@ -2,19 +2,15 @@ Chat-room - application for communication between many users
 ============================================================
 Database info (required for personal use of the app):
 
-database consists of 3 tables: users, messages, mutes
+Changelog #1: 12.01.2018
 
-column ordering of each is as follows:
+- Server can now set up its own database. It's achieved through "Po³¹cz z baz¹ danych" button - it prompts to point at the database to use, and provide the login and pass to PostgreSQL admin.
 
+	IMPORTANT: It creates a new database using the name provided. First-time server users are advised to set up their database this way.
 
-users - id int, login varchar(30), pass char(32), email varchar(80), verification code char(10), isverified bool
+- Password Textfields are now properly hiding the input
 
-messages - id int, username varchar(30), sendtime timestamp no timezone, message text
-
-mutes - id int, muter varchar(30), muted varchar(30)
-
-
-As long as tablenames and info ordering follows this convention, application will work regardless of naming of individual columns.
+-Low-level databas logic is now moved to different class
 
 
 Functionality (as of 23.12.2017):
