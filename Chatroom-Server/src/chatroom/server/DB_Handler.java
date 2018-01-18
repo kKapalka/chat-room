@@ -89,7 +89,9 @@ public class DB_Handler {
         try{
         
         statement=conn.createStatement();
-        statement.executeUpdate("CREATE DATABASE "+dbname+";");
+        String namecheck=dbname.replaceAll("[^a-z0-9_]","");
+        if(dbname!=namecheck) statement.executeUpdate("CREATE DATABASE \""+dbname+"\";");
+        else statement.executeUpdate("CREATE DATABASE "+dbname+";");
         } catch (SQLException ex){
             ex.printStackTrace();
         }
