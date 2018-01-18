@@ -31,9 +31,13 @@ public class DB_Handler {
         this.user=user;
         this.pass=pass;
         this.parent=parent;
-        conn = DriverManager.getConnection(this.server+this.dbname, user, pass);
+        
+        conn=DriverManager.getConnection(this.server, user, pass);
+        
         CreateDB();
         CreateTables();
+        
+        conn = DriverManager.getConnection(this.server+this.dbname, user, pass);
         Init();
     }
     

@@ -150,7 +150,7 @@ public class ChatroomServer extends javax.swing.JFrame {
             starter.start();*/
     }
     public void Start(){
-        ServerText.setText("Połączono się z bazą: "+handler.server+"\n");
+        ServerText.setText("Połączono się z bazą: "+handler.server+handler.dbname+"\n");
         Thread starter = new Thread(new ServerStart(this));
         starter.start();
     }
