@@ -138,6 +138,7 @@ public void updateDatabase(String sql){
         return res;
         }catch (SQLException ex){
             parent.ServerTextAppend("Blad podczas wybierania wartosci z bazy.");
+            ex.printStackTrace();
         }
         return null;
     }

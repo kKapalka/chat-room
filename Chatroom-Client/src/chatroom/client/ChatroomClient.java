@@ -54,6 +54,10 @@ public class ChatroomClient extends javax.swing.JFrame {
     /**
      * Creates new form ChatroomClient
      */
+    
+    public String logintime;
+    
+    
     public ChatroomClient() {  
         initComponents();
         setToMiddle();

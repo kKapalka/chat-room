@@ -94,11 +94,15 @@ public class ClientHandler implements Runnable
                                         SendToClient("Error","LOGIN_IN_USE","Użytkownik o takim loginie jest już zalogowany");
                                         SendToClient("Break");
                                     }
+                                    else if(!CheckInUser(data[1],"","","","true")){
+                                        SendToClient("Error","USER_INVALID","Klient o takich danych jeszcze nie jest zweryfikowany.");
+                                        SendToClient("Break");
+                                    }
                                     else{
-                                        SendToClient("Login");
+                                        SendToClient("Login",curDate);
                                         login=data[1];
                                         parent.users.add(new User(data[1],client));
-                                        SendFullChat();
+                                        SendChat(curDate);
                                     }
                                 }else{
                                     SendToClient("Error","USER_INVALID","Nieprawidłowe dane logowania");
@@ -114,10 +118,12 @@ public class ClientHandler implements Runnable
                             SendToClient("Break");
                             parent.users.remove(new User(data[1],client));
                             break;
-                        case "Message":
+                        case "Message": 
                             if(data.length==3){
                                 if(HasMore("/mute",data[2]))  Mute(data[2].substring(6));
                                 else if (HasMore("/unmute",data[2])) Unmute(data[2].substring(8));
+                                else if ("/show history".equals(data[2])) SendFullChat();
+                                    else if ("/hide history".equals(data[2])) SendChat(data[3]);
                                 else if(data[2].substring(0,1).equals("/")) SendToClient("Chat","Niepoprawna komenda");
                                 else{
                                     int new_id=createNewId(""+parent.messages,parent.messages.Get(0));
@@ -248,7 +254,15 @@ public class ClientHandler implements Runnable
         }catch (NullPointerException ex){}
         SendToClient("Chat","Zalogowano");
     }
-    
+    private void SendChat(String time) throws SQLException{
+        ResultSet rs=parent.SelectFromChat(new String[]{"sendtime >= '"+time+"'"},login);
+        try{
+        while(rs.next()){
+            SendToClient("Chat",rs.getTimestamp(parent.messages.Get(2)).toString(),rs.getString(parent.messages.Get(1)),"  "+rs.getString(parent.messages.Get(3)));    
+        }
+        }catch (NullPointerException ex){}
+        SendToClient("Chat","Zalogowano");
+    }
     private String randomVerifyCode(){
         return Long.toHexString(Double.doubleToLongBits(Math.random())).substring(4,14);
     }

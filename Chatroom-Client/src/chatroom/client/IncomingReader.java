@@ -44,9 +44,11 @@ import java.util.Arrays;
                             }
                             break;
                          case "Login":
-                             if (data.length==1) parent.SwitchPanels("Chat");
+                             parent.SwitchPanels("Chat");
+                             parent.logintime=data[1];
                              break;
                          case "Chat":
+                             if(data.length>3) data[3]=data[3].replace(";apos;","'");
                              parent.ChatTextAppend(data);
                              break;
                          case "Break":

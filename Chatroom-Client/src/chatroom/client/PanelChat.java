@@ -104,7 +104,12 @@ public class PanelChat extends javax.swing.JPanel {
 
     private void SendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SendButtonActionPerformed
        client=(ChatroomClient)this.getTopLevelAncestor();
-        client.SendData("Message"+DELIMITER+username+DELIMITER+MessageInput.getText());
+       String message=MessageInput.getText().replace("'", ";apos;");
+       if("/hide history".equals(message)) client.SendData("Message"+DELIMITER+username+DELIMITER+message+DELIMITER+client.logintime);
+       else client.SendData("Message"+DELIMITER+username+DELIMITER+message);
+       
+       if("/show history".equals(message) || "/hide history".equals(message)) Clear();
+       
        MessageInput.setText("");
     }//GEN-LAST:event_SendButtonActionPerformed
 

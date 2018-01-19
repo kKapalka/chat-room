@@ -4,7 +4,21 @@ Database info (required for personal use of the app):
 
 Changelog #2: 19.01.2018
 
+- Implemented two new chat functions for client:
+
+	- /show history - displays contents of the chat prior to login
+	- /hide history - clears the chat from contents prior to login
+
+- Chat no longer displays full contents by default
+
 - Server now needs to log in to its database only once. Data is retained after successful login in a file "dbfile.txt", which is in top-most folder of project directory
+
+- Fixed a bug where a message would not be sent properly if it contained an apostrophe (')
+
+- Fixed a bug where non-verified user could log in the chat
+
+- Found a bug where the message extracting query would run multiple times. Severity: minor - causes minor inconveniences
+
 
 Changelog #1: 18.01.2018
 
@@ -14,7 +28,7 @@ Changelog #1: 18.01.2018
 
 - Password Textfields are now properly hiding the input
 
--Low-level databas logic is now moved to different class
+-Low-level database logic is now moved to different classes
 
 
 Functionality (as of 23.12.2017):
