@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 /**
- *
+ * Klasa odpowiedzialna za odbieranie informacji od serwera, manipulacje panelami na podstawie odebranych informacji
  * @author kkapa
  */
 public class IncomingReader implements Runnable {

@@ -14,7 +14,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 /**
- *
+ * Klasa odpowiedzialna za laczenie serwera z klientami
  * @author kkapa
  */
 public class ServerStart implements Runnable {

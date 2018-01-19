@@ -8,7 +8,7 @@ package chatroom.client;
 import java.awt.Toolkit;
 
 /**
- *
+ * Klasa odpowiedzialna za proces rejestracji i weryfikacji uzytkownika
  * @author kkapa
  */
 public class RegisterDialog extends javax.swing.JDialog {

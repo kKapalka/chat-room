@@ -6,7 +6,7 @@
 package chatroom.server;
 
 /**
- *
+ * Klasa odpowiedzialna za wysylanie maili do klientow
  * @author kkapa
  */
 import java.util.Properties;
@@ -24,10 +24,10 @@ public class MailSender {
     String from, username, password;
 
     MailSender() {
-        // Sender's email ID needs to be mentioned
-        from = "chatroom.pwsztar@gmail.com"; //change accordingly
-        username = "chatroom.pwsztar@gmail.com";//change accordingly
-        password = "poszlaoladoprzedszkola";//change accordingly
+        
+        from = "chatroom.pwsztar@gmail.com";
+        username = "chatroom.pwsztar@gmail.com";
+        password = "poszlaoladoprzedszkola";
     }
 
     /**
@@ -53,25 +53,25 @@ public class MailSender {
         });
 
         try {
-            // Create a default MimeMessage object.
+            
             Message message = new MimeMessage(session);
 
-            // Set From: header field of the header.
+            
             message.setFrom(new InternetAddress(from));
 
-            // Set To: header field of the header.
+           
             message.setRecipients(Message.RecipientType.TO,
                     InternetAddress.parse(to));
 
-            // Set Subject: header field
+            
             message.setSubject("ChatRoom - Kod weryfikacyjny");
 
-            // Now set the actual message
+            
             message.setText("Dziękuję za korzystanie z aplikacji ChatRoom v1.0\n"
                     + "Twój kod weryfikacyjny: " + code + "\n\n"
                     + "Ekipa ChatRoom");
 
-            // Send message
+            
             Transport.send(message);
 
         } catch (MessagingException e) {

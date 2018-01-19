@@ -9,7 +9,7 @@ import java.awt.Frame;
 import java.awt.event.KeyEvent;
 
 /**
- *
+ * Klasa odpowiedzialna za logowanie i rejestracja klienta
  * @author kkapa
  */
 public class LoginPanel extends javax.swing.JPanel {

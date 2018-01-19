@@ -18,7 +18,7 @@ import java.util.Arrays;
 import javax.swing.JOptionPane;
 
 /**
- *
+ * Klasa glowna aplikacji klienta. Odpowiedzialna za laczenie i wysylanie informacji do serwera, przelaczanie miedzy panelami
  * @author kkapa
  */
 public class ChatroomClient extends javax.swing.JFrame {
@@ -53,7 +53,7 @@ public class ChatroomClient extends javax.swing.JFrame {
      */
     public Thread IncomingReader;
     /**
-     * Creates new form ChatroomClient
+     * Zmienna przechowujaca czas logowania do czatu
      */
 
     public String logintime;
@@ -90,7 +90,7 @@ public class ChatroomClient extends javax.swing.JFrame {
      * <p>
      * Panel czatu - po zalogowaniu, Panel logowania - po wylogowaniu</p>
      * <p>
-     * Z funkcji korzysta klasa: IncomingReader,
+     * Z funkcji korzysta klasa: IncomingReader
      *
      * @param state - panel, który chcemy wyświetlić
      */

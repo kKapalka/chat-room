@@ -12,7 +12,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 /**
- *
+ * Klasa odpowiedzialna za (jednorazowe) logowanie serwera do bazy danych
  * @author kkapa
  */
 public class DBLogin extends javax.swing.JDialog {

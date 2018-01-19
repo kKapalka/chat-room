@@ -1,5 +1,13 @@
 Chat-room - application for communication between many users
 ============================================================
+Changelog #3: 19.01.2018
+
+- Fixed a ~~bug~~ feature where functions '/mute' and '/unmute' self were completely valid options. They are not anymore.
+
+- Extended the password column size in database, from 32 to 64 characters  (to set up a new database, remove the .txt document in your Server directory)
+
+- Updated the javadoc documents
+
 Changelog #2: 19.01.2018
 
 - Implemented two new chat functions for client:

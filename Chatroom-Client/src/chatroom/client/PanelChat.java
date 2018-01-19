@@ -6,7 +6,7 @@
 package chatroom.client;
 
 /**
- *
+ * Klasa odpowiedzialna za wysylanie wiadomosci do czatu i wyswietlanie komunikacji miedzy uzytkownikami
  * @author kkapa
  */
 public class PanelChat extends javax.swing.JPanel {

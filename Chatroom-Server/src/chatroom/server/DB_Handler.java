@@ -6,7 +6,7 @@
 package chatroom.server;
 
 /**
- *
+ * Klasa obslugujaca bazy danych, Odpowiedzialna za generowanie bazy, zbieranie informacji o bazie, i komunikacje z nia
  * @author kkapa
  */
 import java.sql.*;
@@ -85,7 +85,9 @@ public class DB_Handler {
             table.addColumn(rsmd.getColumnName(i), rsmd.getColumnTypeName(i));
         }
     }
-
+    /**
+     * Funkcja generujaca baze danych
+     */
     private void CreateDB() {
         try {
 
@@ -100,10 +102,12 @@ public class DB_Handler {
 
         }
     }
-
+    /**
+     * Funkcja generujaca tabele wewnatrz bazy danych
+     */
     private void CreateTables() {
         try {
-            conn = DriverManager.getConnection(server, user, pass);
+            conn = DriverManager.getConnection(server+dbname, user, pass);
             DatabaseMetaData dbm = conn.getMetaData();
             ResultSet tables = dbm.getTables(null, null, "messages", null);
             if (!tables.next()) {
@@ -113,7 +117,7 @@ public class DB_Handler {
             tables = dbm.getTables(null, null, "users", null);
             if (!tables.next()) {
                 statement = conn.createStatement();
-                statement.executeUpdate("CREATE TABLE users (id int not null primary key, login character varying(30), pass character(32), email character varying(80), code character(10), verified boolean);");
+                statement.executeUpdate("CREATE TABLE users (id int not null primary key, login character varying(30), pass character(64), email character varying(80), code character(10), verified boolean);");
             }
             tables = dbm.getTables(null, null, "mutes", null);
             if (!tables.next()) {
@@ -124,7 +128,10 @@ public class DB_Handler {
             ex.printStackTrace();
         }
     }
-
+    /**
+     * <p> Niskopoziomowa funkcja obslugujaca aktualizacje bazy danych: wstawianie, modyfikacje, usuwanie wartosci</p>
+     * @param sql tresc zapytania aktualizujacego
+     */
     public void updateDatabase(String sql) {
         int res;
         try {
@@ -135,7 +142,11 @@ public class DB_Handler {
             parent.ServerTextAppend("Blad w trakcie aktualizacji tabeli.");
         }
     }
-
+    /**
+     * <p> Niskopoziomowa funkcja obslugujaca zapytania do bazy danych</p>
+     * @param sql tresc zapytania
+     * @return zestaw wynikowy zapytania
+     */
     public ResultSet queryDatabase(String sql) {
         try {
             statement = conn.createStatement();

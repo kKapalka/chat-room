@@ -7,21 +7,17 @@ package chatroom.server;
 
 import java.awt.Toolkit;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.stream.Stream;
 
 /**
- *
+ * Klasa glowna aplikacji serwera,  Odpowiedzialnosc: Aktywacja serwera, sredniopoziomowe zapytania do bazy
  * @author kkapa
  */
 public class ChatroomServer extends javax.swing.JFrame {

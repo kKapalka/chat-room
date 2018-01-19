@@ -19,7 +19,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 
 /**
- *
+ * Klasa odpowiedzialna za odbieranie komunikatow od klienta, specyficzne zapytania do bazy danych
  * @author kkapa
  */
 public class ClientHandler implements Runnable {
@@ -141,17 +141,32 @@ public class ClientHandler implements Runnable {
 
     }
 
+    /**
+     * Funkcja uzywana do implementacji '/mute' i '/unmute', gdzie po spacji wprowadza sie nick uzytkownika
+     * @param word - sprawdzany ciag znakow
+     * @param text - ciag znakow, do ktorego 'word' jest porownywany
+     * @return true jezeli sprawdzany ciag znakow ma ten sam poczatek co 'text' i ma co najmniej dwa znaki wiecej
+     */
     private Boolean HasMore(String word, String text) {
         if (text.length() < word.length() + 2) {
             return false;
         }
         return (text.substring(0, word.length()).equals(word));
     }
-
+    /**
+     * <p>Funkcja umozliwia blokowanie wiadomosci od niektorych uzytkownikow komenda '/mute nazwa_uzytkownika'.</p>
+     * <p>Dodaje do bazy danych, do tabeli 'mutes' nowy rekord zawierajacy osobe blokujaca i blokowana.</p>
+     * <p>Technicznie jest mozliwe wielokrotne zablokowanie tego samego uzytkownika, gdyz przy probie odblokowania
+     * i tak usuwane są wszystkie rekordy zawierajace ta osobe blokowana i blokująca.</p>
+     * @param username - nazwa użytkownika do zablokowania
+     */
     private void Mute(String username) {
         if (!CheckInUser(username)) {
             SendToClient("Chat", "Użytkownik " + username + " nie istnieje");
-        } else {
+        }
+        else if (username == null ? login == null : username.equals(login)){
+            SendToClient("Chat", "Nie możesz zablokować siebie");
+        }else {
             try {
                 parent.Insert("" + parent.mutes, "" + createNewId("" + parent.mutes, parent.mutes.Get(0)), "'" + this.login + "'", "'" + username + "'");
                 SendToClient("Chat", "Wiadomości od użytkownika: " + username + " są dla ciebie niewidoczne.");
@@ -160,17 +175,29 @@ public class ClientHandler implements Runnable {
             }
         }
     }
-
+    /**
+     * <p>Funkcja umozliwia odblokowanie wiadomosci od uprzednio zablokowanych uzytkownikow komenda '/unmute nazwa_uzytkownika'.</p>
+     * <p> Usuwa z bazy danych rekordy zawierajace dana osobe blokowana i blokująca.</p>
+     * @param username - nazwa użytkownika do odblokowania
+     */
     private void Unmute(String username) {
         if (!CheckInUser(username)) {
             SendToClient("Chat", "Użytkownik " + username + " nie istnieje");
+        }
+        else if (username == null ? login == null : username.equals(login)){
+            SendToClient("Chat", "I tak nie możesz zablokować siebie");
         } else {
             parent.Delete("" + parent.mutes, parent.mutes.Get(1) + " LIKE '" + login + "' AND " + parent.mutes.Get(2) + " LIKE '" + username + "'");
             SendToClient("Chat", "Wiadomości od użytkownika: " + username + " są dla ciebie znów widoczne.");
 
         }
     }
-
+    /**
+     * <p> Funkcja ma za zadanie zarejestrowac uzytkownika w bazie danych</p>
+     * <p> Najpierw sprawdza, czy email jest w uzyciu. Potem, czy login. Jesli te dwa sa wolne, to generuje kod weryfikacyjny,
+     * tworzy rekord w bazie danych i wysyla kod na podany wczesniej email.</p>
+     * @param data - ciag informacji o uzytkowniku do rejestracji: login, haslo, email
+     */
     private void RegisterUser(String[] data) {
         try {
             if (CheckInUser("", "", data[3])) {
@@ -187,7 +214,13 @@ public class ClientHandler implements Runnable {
             parent.ServerTextAppend("Błąd w sekwencji rejestracji\n");
         }
     }
-
+    /**
+     * <p> Funkcja ma za zadanie zweryfikowac, ze dany email naprawde nalezy do danego uzytkownika</p>
+     * <p> Najpierw sprawdza czy istnieje dany klient w bazie. Potem, czy klient juz byl zweryfikowany.</p>
+     * <p> Nastepnie sprawdza czy do danego loginu jest przypisany wprowadzony przez uzytkownika kod. Jesli tak, to
+     * klient jest zweryfikowany pomyslnie. Jesli nie, to wprowadzil bledny kod.</p>
+     * @param data - ciag informacji o uzytkowniku, po kolei: login, haslo, email, kod weryfikacyjny
+     */
     private void VerifyUser(String[] data) {
         try {
             if (!CheckInUser(data[1], Encrypt(data[2]))) {
@@ -207,14 +240,23 @@ public class ClientHandler implements Runnable {
             parent.ServerTextAppend("Błąd w sekwencji weryfikacji\n");
         }
     }
-
+    /**
+     * <p> Funkcja sluzy do szyfrowania tekstu algorytmem SHA-256</p>
+     * @param text - tekst do zaszyfrowania
+     * @return zaszyfrowany tekst
+     * @throws NoSuchAlgorithmException
+     */
     private String Encrypt(String text) throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
-        String encoded = bytesToHex(hash);
-        return encoded.substring(0, 32);
+        return bytesToHex(hash);
+        
     }
-
+    /**
+     * Funkcja pomocnicza do funkcji Encrypt() - ma za zadanie przekonwertowac ciag bajtow na ciag znakow hexadecymalnych</p>
+     * @param bytes - tabela bajtow wchodzacych
+     * @return ciag znakow
+     */
     private static String bytesToHex(byte[] bytes) {
         StringBuilder result = new StringBuilder();
         for (byte b : bytes) {
@@ -282,20 +324,29 @@ public class ClientHandler implements Runnable {
         }
         return parent.CheckIn("" + parent.tab_users, conditions);
     }
-
+    /**
+     * <p> Funkcja jest wywolywana podczas aktywacji wyswietlania historii czatu.</p>
+     * <p> Najpierw wybiera z bazy danych te wiadomosci ktore byly wyslane przed logowaniem uzytkownika, i wysyla je do czatu</p>
+     * <p> Potem wywoluje funkcje SendChat(time)
+     * @param time - czas logowania uzytkownika
+     * @throws SQLException 
+     */
     private void SendFullChat(String time) throws SQLException {
         ResultSet rs = parent.SelectFromChat(new String[]{"sendtime < '" + time + "'"}, login);
         try {
-            int i = 0;
             while (rs.next()) {
                 SendToClient("Chat", rs.getTimestamp(parent.messages.Get(2)).toString(), rs.getString(parent.messages.Get(1)), "  " + rs.getString(parent.messages.Get(3)));
-                System.out.println(i++);
             }
         } catch (NullPointerException ex) {
         }
         SendChat(time);
     }
-
+    /**
+     * Funkcja najpierw wysyla do uzytkownika komunikat o pomyslnym logowaniu. Potem wybiera z bazy danych aktualne wiadomosci, i je wysyla do czatu.
+     * <p> Funkcja jest wywolywana przy logowaniu oraz podczas chowania historii czatu</p>
+     * @param time czas logowania uzytkownika
+     * @throws SQLException 
+     */
     private void SendChat(String time) throws SQLException {
         SendToClient("Chat", "Zalogowano");
         ResultSet rs = parent.SelectFromChat(new String[]{"sendtime >= '" + time + "'"}, login);
