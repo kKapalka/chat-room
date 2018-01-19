@@ -83,7 +83,9 @@ public class ChatroomServer extends javax.swing.JFrame {
     private void setToMiddle() {
         setLocation((Toolkit.getDefaultToolkit().getScreenSize().width) / 2 - getWidth() / 2, (Toolkit.getDefaultToolkit().getScreenSize().height) / 2 - getHeight() / 2);
     }
-
+    public Boolean getMailState(){
+        return MailCheck.isSelected();
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -97,6 +99,7 @@ public class ChatroomServer extends javax.swing.JFrame {
         ClientList = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         ServerText = new javax.swing.JTextPane();
+        MailCheck = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Chatroom Server");
@@ -121,6 +124,8 @@ public class ChatroomServer extends javax.swing.JFrame {
         ServerText.setText("...Serwer czeka na uruchomienie");
         jScrollPane1.setViewportView(ServerText);
 
+        MailCheck.setText("Wysyłaj e-maile");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -128,7 +133,9 @@ public class ChatroomServer extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(Launch)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 119, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(MailCheck)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 12, Short.MAX_VALUE)
                 .addComponent(ClientList)
                 .addContainerGap())
             .addComponent(jScrollPane1)
@@ -140,7 +147,8 @@ public class ChatroomServer extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(ClientList)
-                    .addComponent(Launch))
+                    .addComponent(Launch)
+                    .addComponent(MailCheck))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -393,6 +401,7 @@ public class ChatroomServer extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton ClientList;
     private javax.swing.JButton Launch;
+    private javax.swing.JCheckBox MailCheck;
     private javax.swing.JTextPane ServerText;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables

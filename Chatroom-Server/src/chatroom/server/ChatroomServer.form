@@ -30,7 +30,9 @@
           <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Component id="Launch" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="119" max="32767" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="MailCheck" min="-2" max="-2" attributes="0"/>
+              <EmptySpace pref="12" max="32767" attributes="0"/>
               <Component id="ClientList" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -45,6 +47,7 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="ClientList" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="Launch" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="MailCheck" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
@@ -86,5 +89,10 @@
         </Component>
       </SubComponents>
     </Container>
+    <Component class="javax.swing.JCheckBox" name="MailCheck">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Wysy&#x142;aj e-maile"/>
+      </Properties>
+    </Component>
   </SubComponents>
 </Form>
