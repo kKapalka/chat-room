@@ -17,31 +17,28 @@ import java.util.ArrayList;
  *
  * @author kkapa
  */
-public class ServerStart implements Runnable 
-    {
-        ChatroomServer parent;
-        ServerStart(ChatroomServer par){
-            parent=par;
-        }
-        @Override
-        public void run() 
-        {
-            try 
-            {
-                parent.users=new ArrayList<>();
-                ServerSocket serversocket = new ServerSocket(2222);
-                while (true) 
-                {
-				Socket clientsocket=serversocket.accept();
-				PrintWriter out = new PrintWriter(clientsocket.getOutputStream(), true);
-                                BufferedReader in = new BufferedReader(new InputStreamReader(clientsocket.getInputStream()));
-                                Thread listener = new Thread(new ClientHandler(clientsocket, out, parent));
-				listener.start();
-                }
+public class ServerStart implements Runnable {
+
+    ChatroomServer parent;
+
+    ServerStart(ChatroomServer par) {
+        parent = par;
+    }
+
+    @Override
+    public void run() {
+        try {
+            parent.users = new ArrayList<>();
+            ServerSocket serversocket = new ServerSocket(2222);
+            while (true) {
+                Socket clientsocket = serversocket.accept();
+                PrintWriter out = new PrintWriter(clientsocket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientsocket.getInputStream()));
+                Thread listener = new Thread(new ClientHandler(clientsocket, out, parent));
+                listener.start();
             }
-            catch (IOException ex)
-            {
-                parent.ServerTextAppend("Error making a connection. \n");
-            }
+        } catch (IOException ex) {
+            parent.ServerTextAppend("Error making a connection. \n");
         }
     }
+}

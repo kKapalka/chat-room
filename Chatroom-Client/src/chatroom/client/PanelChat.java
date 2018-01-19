@@ -10,18 +10,21 @@ package chatroom.client;
  * @author kkapa
  */
 public class PanelChat extends javax.swing.JPanel {
+
     /**
      * Odnosnik do glownej aplikacji klienta
      */
     ChatroomClient client;
     /**
-     * Stala okreslajaca delimiter miedzy fragmentami informacji przesylanymi mieszy klientem a serwerem
+     * Stala okreslajaca delimiter miedzy fragmentami informacji przesylanymi
+     * mieszy klientem a serwerem
      */
-    static final String DELIMITER=";end;";
+    static final String DELIMITER = ";end;";
     /**
      * Nazwa uzytkownika
      */
-    String username="";
+    String username = "";
+
     /**
      * Creates new form ChatPanel
      */
@@ -31,11 +34,13 @@ public class PanelChat extends javax.swing.JPanel {
 
     /**
      * Funkcja ustawia nazwe uzytkownika w panelu czatu
+     *
      * @param name nazwa uzytkownika
      */
-    public void setUserName(String name){
-        this.username=name;
+    public void setUserName(String name) {
+        this.username = name;
     }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -98,42 +103,44 @@ public class PanelChat extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void LogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LogoutActionPerformed
-        client=(ChatroomClient)this.getTopLevelAncestor();
-        client.SendData("Logout"+DELIMITER+username+DELIMITER);
-        
+        client = (ChatroomClient) this.getTopLevelAncestor();
+        client.SendData("Logout" + DELIMITER + username + DELIMITER);
+
     }//GEN-LAST:event_LogoutActionPerformed
 
     private void SendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SendButtonActionPerformed
-       client=(ChatroomClient)this.getTopLevelAncestor();
-       
-       String message=MessageInput.getText().replace("'", ";apos;");
-       if("/show history".equals(message) || "/hide history".equals(message)){
+        client = (ChatroomClient) this.getTopLevelAncestor();
+
+        String message = MessageInput.getText().replace("'", ";apos;");
+        if ("/show history".equals(message) || "/hide history".equals(message)) {
             Clear();
-            client.SendData("Message"+DELIMITER+username+DELIMITER+message+DELIMITER+client.logintime);
-       }
-       else client.SendData("Message"+DELIMITER+username+DELIMITER+message);
-       
-       
-       
-       MessageInput.setText("");
+            client.SendData("Message" + DELIMITER + username + DELIMITER + message + DELIMITER + client.logintime);
+        } else {
+            client.SendData("Message" + DELIMITER + username + DELIMITER + message);
+        }
+
+        MessageInput.setText("");
     }//GEN-LAST:event_SendButtonActionPerformed
 
     /**
-     * Funkcja ma za zadanie wstawić nową linijkę tekstu do czatu oraz przesunięcie karety na sam koniec
+     * Funkcja ma za zadanie wstawić nową linijkę tekstu do czatu oraz
+     * przesunięcie karety na sam koniec
+     *
      * @param text tekst do podpięcia do okna czatu
      */
-    public void TextAppend(String text){
-        Chat.setText(Chat.getText()+text+"\n");
-       Chat.setCaretPosition(Chat.getDocument().getLength());
+    public void TextAppend(String text) {
+        Chat.setText(Chat.getText() + text + "\n");
+        Chat.setCaretPosition(Chat.getDocument().getLength());
     }
 
     /**
-     * Funkcja odpowiada za wyczyszczenie panelu czatu. Korzysta z niej klasa ChatroomClient podczas operacji logowania
+     * Funkcja odpowiada za wyczyszczenie panelu czatu. Korzysta z niej klasa
+     * ChatroomClient podczas operacji logowania
      */
-    public void Clear(){
+    public void Clear() {
         Chat.setText("");
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextPane Chat;
     private javax.swing.JButton Logout;

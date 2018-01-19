@@ -1,7 +1,5 @@
 Chat-room - application for communication between many users
 ============================================================
-Database info (required for personal use of the app):
-
 Changelog #2: 19.01.2018
 
 - Implemented two new chat functions for client:

@@ -10,6 +10,7 @@ package chatroom.server;
  * @author kkapa
  */
 public class Column {
+
     /**
      * nazwa kolumny w bazie danych
      */
@@ -18,8 +19,9 @@ public class Column {
      * typ zmiennej kolumny
      */
     String type;
-    Column(String name, String type){
-        this.name=name;
-        this.type=type;
+
+    Column(String name, String type) {
+        this.name = name;
+        this.type = type;
     }
 }

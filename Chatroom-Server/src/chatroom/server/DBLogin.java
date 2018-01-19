@@ -16,15 +16,16 @@ import javax.swing.SwingUtilities;
  * @author kkapa
  */
 public class DBLogin extends javax.swing.JDialog {
-    
+
     ChatroomServer parent;
+
     /**
      * Creates new form DBLogin
      */
     public DBLogin(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-        parent=(ChatroomServer)this.getParent();
+        parent = (ChatroomServer) this.getParent();
     }
 
     /**
@@ -135,17 +136,17 @@ public class DBLogin extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void AttemptLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AttemptLoginActionPerformed
-        try{
-        parent=(ChatroomServer)this.getParent();
-        parent.handler=new DB_Handler(DB_Server.getText(),DB_Login.getText(),DB_Pass.getText(),(ChatroomServer)this.getParent());
-        parent.Start();
-        Component comp = SwingUtilities.getRoot(this);
-        ((Window) comp).dispose();
-        }catch (SQLException ex){
+        try {
+            parent = (ChatroomServer) this.getParent();
+            parent.handler = new DB_Handler(DB_Server.getText(), DB_Login.getText(), DB_Pass.getText(), (ChatroomServer) this.getParent());
+            parent.Start();
+            Component comp = SwingUtilities.getRoot(this);
+            ((Window) comp).dispose();
+        } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this,
-            "Nie udało się połączyć z bazą. Spróbuj ponownie",
-            "SQL_CONN_ERROR",
-            JOptionPane.ERROR_MESSAGE);
+                    "Nie udało się połączyć z bazą. Spróbuj ponownie",
+                    "SQL_CONN_ERROR",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_AttemptLoginActionPerformed
 

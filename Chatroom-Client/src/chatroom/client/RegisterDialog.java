@@ -12,11 +12,15 @@ import java.awt.Toolkit;
  * @author kkapa
  */
 public class RegisterDialog extends javax.swing.JDialog {
+
     ChatroomClient Parent;
+
     /**
-     * Creates new form RegisterDialog. 
-     * Standardowy konstruktor klasy JDialog.
-     * <p> Dodatkowo wysrodkowuje okno rejestracji oraz ustawia odnosnik do rodzica klasy ChatroomClient
+     * Creates new form RegisterDialog. Standardowy konstruktor klasy JDialog.
+     * <p>
+     * Dodatkowo wysrodkowuje okno rejestracji oraz ustawia odnosnik do rodzica
+     * klasy ChatroomClient
+     *
      * @param parent
      * @param modal
      */
@@ -24,8 +28,8 @@ public class RegisterDialog extends javax.swing.JDialog {
         super(parent, modal);
         initComponents();
         InfoText.setText(" ");
-        Parent=(ChatroomClient)this.getParent();
-        setLocation((Toolkit.getDefaultToolkit().getScreenSize().width)/2 - getWidth()/2, (Toolkit.getDefaultToolkit().getScreenSize().height)/2 - getHeight()/2);
+        Parent = (ChatroomClient) this.getParent();
+        setLocation((Toolkit.getDefaultToolkit().getScreenSize().width) / 2 - getWidth() / 2, (Toolkit.getDefaultToolkit().getScreenSize().height) / 2 - getHeight() / 2);
     }
 
     /**
@@ -125,13 +129,13 @@ public class RegisterDialog extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void EmailButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_EmailButtonActionPerformed
-       
-       Parent.SendData("Register",Parent.login,Parent.pass,EmailText.getText());
-       InfoText.setText("Kod wyslano na e-mail: "+EmailText.getText());
+
+        Parent.SendData("Register", Parent.login, Parent.pass, EmailText.getText());
+        InfoText.setText("Kod wyslano na e-mail: " + EmailText.getText());
     }//GEN-LAST:event_EmailButtonActionPerformed
 
     private void VerifyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_VerifyButtonActionPerformed
-        Parent.SendData("Verify",Parent.login,Parent.pass,EmailText.getText(),VerifyCodeText.getText());
+        Parent.SendData("Verify", Parent.login, Parent.pass, EmailText.getText(), VerifyCodeText.getText());
     }//GEN-LAST:event_VerifyButtonActionPerformed
 
     /**
@@ -154,7 +158,7 @@ public class RegisterDialog extends javax.swing.JDialog {
             java.util.logging.Logger.getLogger(RegisterDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-        
+
         //</editor-fold>
 
         /* Create and display the dialog */

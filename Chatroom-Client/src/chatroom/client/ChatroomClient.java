@@ -17,18 +17,18 @@ import java.net.Socket;
 import java.util.Arrays;
 import javax.swing.JOptionPane;
 
-
 /**
  *
  * @author kkapa
  */
 public class ChatroomClient extends javax.swing.JFrame {
+
     /**
      * Login uzytkownika
      */
     String login;
     /**
-     * Haslo uzytkownika 
+     * Haslo uzytkownika
      */
     String pass;
     /**
@@ -44,9 +44,10 @@ public class ChatroomClient extends javax.swing.JFrame {
      */
     PrintWriter writer;
     /**
-     * Stala opisujaca delimiter dla ciagu informacji przesylanego miedzy klientem a serwerem
+     * Stala opisujaca delimiter dla ciagu informacji przesylanego miedzy
+     * klientem a serwerem
      */
-    static final String DELIMITER=";end;";
+    static final String DELIMITER = ";end;";
     /**
      * Watek nasluchujacy odpowiedzi od serwera
      */
@@ -54,15 +55,14 @@ public class ChatroomClient extends javax.swing.JFrame {
     /**
      * Creates new form ChatroomClient
      */
-    
+
     public String logintime;
-    
-    
-    public ChatroomClient() {  
+
+    public ChatroomClient() {
         initComponents();
         setToMiddle();
-        }
-    
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -83,15 +83,20 @@ public class ChatroomClient extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
     /**
-     * Funkcja odpowidzialna za wyświetlenie odpowiedniego panelu w odpowiednim momencie:
-     * <p> Panel czatu - po zalogowaniu, Panel logowania - po wylogowaniu</p>
-     * <p> Z funkcji korzysta klasa: IncomingReader, 
+     * Funkcja odpowidzialna za wyświetlenie odpowiedniego panelu w odpowiednim
+     * momencie:
+     * <p>
+     * Panel czatu - po zalogowaniu, Panel logowania - po wylogowaniu</p>
+     * <p>
+     * Z funkcji korzysta klasa: IncomingReader,
+     *
      * @param state - panel, który chcemy wyświetlić
      */
-    public void SwitchPanels(String state){
-        CardLayout cards = (CardLayout)(getContentPane().getLayout());
-        switch(state){
+    public void SwitchPanels(String state) {
+        CardLayout cards = (CardLayout) (getContentPane().getLayout());
+        switch (state) {
             case "Chat":
                 cards.show(getContentPane(), "card3");
                 break;
@@ -100,98 +105,127 @@ public class ChatroomClient extends javax.swing.JFrame {
                 break;
         }
     }
+
     /**
      * Funkcja wyśrodkowuje pozycję okienka. Jest czysto kosmetyczna.
      */
-    private void setToMiddle(){
-        setLocation((Toolkit.getDefaultToolkit().getScreenSize().width)/2 - getWidth()/2, (Toolkit.getDefaultToolkit().getScreenSize().height)/2 - getHeight()/2);
+    private void setToMiddle() {
+        setLocation((Toolkit.getDefaultToolkit().getScreenSize().width) / 2 - getWidth() / 2, (Toolkit.getDefaultToolkit().getScreenSize().height) / 2 - getHeight() / 2);
     }
+
     /**
-     * Funkcja służy do komunikacji klienta z serwerem. Lączy listę ciągów znakowych w jedną wiadomość
-     * (z elementami składowymi rozdzielonymi delimiterem ";end;"), wysyła ją do serwera
-     * i nasłuchuje odpowiedzi.
-     * <p> W razie gdy to jest potrzebne (podczas rejestracji, weryfikacji i logowania) funkcja dodatkowo próbuje połączyć
-     * się z serwerem. Gdy to się nie uda, wiadomość po prostu nie zostanie przesłana</p>
-     * <p> Podczas wysyłania wiadomości innego typu program zakłada, że jest połączony z serwerem</p>
+     * Funkcja służy do komunikacji klienta z serwerem. Lączy listę ciągów
+     * znakowych w jedną wiadomość (z elementami składowymi rozdzielonymi
+     * delimiterem ";end;"), wysyła ją do serwera i nasłuchuje odpowiedzi.
+     * <p>
+     * W razie gdy to jest potrzebne (podczas rejestracji, weryfikacji i
+     * logowania) funkcja dodatkowo próbuje połączyć się z serwerem. Gdy to się
+     * nie uda, wiadomość po prostu nie zostanie przesłana</p>
+     * <p>
+     * Podczas wysyłania wiadomości innego typu program zakłada, że jest
+     * połączony z serwerem</p>
+     *
      * @param data - rozszerzalna lista ciągów znaków do przesłania do serwera
      */
-    public void SendData(String... data){
-        String message=String.join(DELIMITER,data);
-        
-        final String[] ConnectOn={"Login","Register","Verify"};
-        if(Arrays.asList(ConnectOn).contains(data[0])){
+    public void SendData(String... data) {
+        String message = String.join(DELIMITER, data);
+
+        final String[] ConnectOn = {"Login", "Register", "Verify"};
+        if (Arrays.asList(ConnectOn).contains(data[0])) {
             LoginAs(data[1]);
             Connect();
         }
-        SendAndListen(message);         
+        SendAndListen(message);
     }
+
     /**
      * Funkcja służy do wysyłania wiadomości i oczekiwania odpowiedzi od serwera
+     *
      * @param message - wiadomość do przesłania do serwera
      */
-    private void SendAndListen(String message){
-        if(ServerIsActive()){
+    private void SendAndListen(String message) {
+        if (ServerIsActive()) {
             writer.println(message);
             writer.flush();
-            if(IncomingReader==null)Listen();
+            if (IncomingReader == null) {
+                Listen();
+            }
         }
     }
+
     /**
-     * Funkcja ma za zadanie ustawić login użytkownika wewnątrz aplikacji, oraz wyczyścić czat
-     * przed jego ponownym napełnieniem przez serwer
+     * Funkcja ma za zadanie ustawić login użytkownika wewnątrz aplikacji, oraz
+     * wyczyścić czat przed jego ponownym napełnieniem przez serwer
+     *
      * @param login - login użytkownika
      */
-    private void LoginAs(String login){
+    private void LoginAs(String login) {
         Chat.setUserName(login);
-        this.login=login;
+        this.login = login;
         Chat.Clear();
     }
+
     /**
-     * Funkcja najpierw sprawdza, czy serwer jest już aktywny - gdy jest, to nic nie robi.
-     * W przeciwnym wypadku ustawia adresy: serwera, strumienia wejścia, odczytu i wyjścia.
-     * Jeżeli po drodze napotka błąd, to informuje o tym klienta wyrzucając okno dialogowe.
+     * Funkcja najpierw sprawdza, czy serwer jest już aktywny - gdy jest, to nic
+     * nie robi. W przeciwnym wypadku ustawia adresy: serwera, strumienia
+     * wejścia, odczytu i wyjścia. Jeżeli po drodze napotka błąd, to informuje o
+     * tym klienta wyrzucając okno dialogowe.
      */
-    public void Connect(){
-        if(ServerIsActive())return;
-        try{
-        server=new Socket("localhost",2222);
-        InputStreamReader streamreader = new InputStreamReader(server.getInputStream());
-        reader = new BufferedReader(streamreader);
-        writer = new PrintWriter(server.getOutputStream());
-        } catch (IOException ex){
-            Message("Error","CONN_ERROR","Nie udało się połączyć");
+    public void Connect() {
+        if (ServerIsActive()) {
+            return;
+        }
+        try {
+            server = new Socket("localhost", 2222);
+            InputStreamReader streamreader = new InputStreamReader(server.getInputStream());
+            reader = new BufferedReader(streamreader);
+            writer = new PrintWriter(server.getOutputStream());
+        } catch (IOException ex) {
+            Message("Error", "CONN_ERROR", "Nie udało się połączyć");
         }
     }
+
     /**
      * Test - czy serwer jest aktywny
+     *
      * @return (serwer jest zainicjalizowany i nie jest zamknięty)
      */
-    public Boolean ServerIsActive(){
-        return !(server==null || server.isClosed());
+    public Boolean ServerIsActive() {
+        return !(server == null || server.isClosed());
     }
+
     /**
-     * Funkcja wyświetla po stronie klienta okno dialogowe, z wybranym tytułem i wiadomością
+     * Funkcja wyświetla po stronie klienta okno dialogowe, z wybranym tytułem i
+     * wiadomością
+     *
      * @param type - typ wiadomości do wyświetlenia
      * @param title - tytuł okna dialogowego
      * @param message - wiadomość w oknie dialogowym
      */
-    public void Message(String type,String title, String message){
-        int messagetype=0;
-        if ("Error".equals(type)) messagetype=JOptionPane.ERROR_MESSAGE;
-        
-        if ("Info".equals(type)) messagetype=JOptionPane.INFORMATION_MESSAGE;
+    public void Message(String type, String title, String message) {
+        int messagetype = 0;
+        if ("Error".equals(type)) {
+            messagetype = JOptionPane.ERROR_MESSAGE;
+        }
+
+        if ("Info".equals(type)) {
+            messagetype = JOptionPane.INFORMATION_MESSAGE;
+        }
         JOptionPane.showMessageDialog(this,
-            message,
-            title,
-            messagetype);
+                message,
+                title,
+                messagetype);
     }
+
     /**
-     * Funkcja uruchamia nowy wątek zawierający klasę IncomingReader - służącą do nasłuchiwania i odbierania wiadomości przez serwer
+     * Funkcja uruchamia nowy wątek zawierający klasę IncomingReader - służącą
+     * do nasłuchiwania i odbierania wiadomości przez serwer
      */
-    private void Listen(){
+    private void Listen() {
         IncomingReader = new Thread(new IncomingReader(this));
         IncomingReader.start();
     }
+
     /**
      * @param args the command line arguments
      */
@@ -212,46 +246,59 @@ public class ChatroomClient extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(ChatroomClient.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-        
+
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
-            ChatroomClient client=new ChatroomClient();
+            ChatroomClient client = new ChatroomClient();
             client.setVisible(true);
             client.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent evt) {
-                    if(client.ServerIsActive())client.SendData("Disconnect",client.login==null?"anon":client.login);
+                    if (client.ServerIsActive()) {
+                        client.SendData("Disconnect", client.login == null ? "anon" : client.login);
+                    }
                 }
             });
         });
     }
-/**
- * Funkcja jest używana tylko na potrzeby gładkiego powrotu użytkownika do panelu logowania.
- * <p> Gdy serwer stwierdzi w trakcie logowania, że login jest zajęty, to panel rejestracji
- * powinien się zamknąć. W tym celu klasa IncomingReader musi przechwycić odnośnik do prywatnego
- * elementu klasy ChatroomClient
- * @return odnośnik do panelu logowania
- */
-public LoginPanel getLoginPanel(){
-    return this.Login;
-}
-/**
- * Funkcja ma za zadanie umożliwić innym klasom wewnątrz aplikacji dostęp do panelu czatu
- * <p> Dzięki temu klasa IncomingReader może wypisywać nowe wiadomości w oknie czatu</p>
- * @param data - informacje do wyświetlenia w oknie czatu
- */
-public void ChatTextAppend(String[] data){
-    String text="";
-        for(String temp:data){
-            if (!data[0].equals(temp)){
-                if(!data[1].equals(temp))text+=":";
-                text+=""+temp;
+
+    /**
+     * Funkcja jest używana tylko na potrzeby gładkiego powrotu użytkownika do
+     * panelu logowania.
+     * <p>
+     * Gdy serwer stwierdzi w trakcie logowania, że login jest zajęty, to panel
+     * rejestracji powinien się zamknąć. W tym celu klasa IncomingReader musi
+     * przechwycić odnośnik do prywatnego elementu klasy ChatroomClient
+     *
+     * @return odnośnik do panelu logowania
+     */
+    public LoginPanel getLoginPanel() {
+        return this.Login;
+    }
+
+    /**
+     * Funkcja ma za zadanie umożliwić innym klasom wewnątrz aplikacji dostęp do
+     * panelu czatu
+     * <p>
+     * Dzięki temu klasa IncomingReader może wypisywać nowe wiadomości w oknie
+     * czatu</p>
+     *
+     * @param data - informacje do wyświetlenia w oknie czatu
+     */
+    public void ChatTextAppend(String[] data) {
+        String text = "";
+        for (String temp : data) {
+            if (!data[0].equals(temp)) {
+                if (!data[1].equals(temp)) {
+                    text += ":";
+                }
+                text += "" + temp;
             }
         }
-    Chat.TextAppend(text);
-}    
+        Chat.TextAppend(text);
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private chatroom.client.PanelChat Chat;
     private chatroom.client.LoginPanel Login;

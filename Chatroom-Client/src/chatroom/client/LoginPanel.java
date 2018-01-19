@@ -13,6 +13,7 @@ import java.awt.event.KeyEvent;
  * @author kkapa
  */
 public class LoginPanel extends javax.swing.JPanel {
+
     /**
      * Odnosnik do glownej apliakacji klienta
      */
@@ -21,12 +22,13 @@ public class LoginPanel extends javax.swing.JPanel {
      * Odnosnik do okna dialogowego od rejestracji
      */
     RegisterDialog dialog;
+
     /**
      * Creates new form LoginPanel
      */
     public LoginPanel() {
         initComponents();
-        
+
     }
 
     /**
@@ -130,22 +132,22 @@ public class LoginPanel extends javax.swing.JPanel {
 
     private void LoginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LoginButtonActionPerformed
 
-        client=(ChatroomClient)this.getTopLevelAncestor();
-        client.login=LoginText.getText();
-        client.pass=PassText.getText();
-        client.SendData("Login",client.login,client.pass);
+        client = (ChatroomClient) this.getTopLevelAncestor();
+        client.login = LoginText.getText();
+        client.pass = PassText.getText();
+        client.SendData("Login", client.login, client.pass);
     }//GEN-LAST:event_LoginButtonActionPerformed
 
     private void RegisterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RegisterButtonActionPerformed
-        
-        client=(ChatroomClient)this.getTopLevelAncestor();
-        client.login=LoginText.getText();
-        client.pass=PassText.getText();
-        dialog=new RegisterDialog((Frame)client,true);
+
+        client = (ChatroomClient) this.getTopLevelAncestor();
+        client.login = LoginText.getText();
+        client.pass = PassText.getText();
+        dialog = new RegisterDialog((Frame) client, true);
         dialog.pack();
-        dialog.setVisible (true);
+        dialog.setVisible(true);
     }//GEN-LAST:event_RegisterButtonActionPerformed
-    
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton LoginButton;

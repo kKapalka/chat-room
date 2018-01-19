@@ -12,6 +12,7 @@ import java.io.PrintWriter;
  * @author kkapa
  */
 public class User {
+
     /**
      * nazwa uzytkownika
      */
@@ -20,8 +21,9 @@ public class User {
      * Kanal wysylania informacji
      */
     PrintWriter OS;
-    User(String name, PrintWriter OS){
-        this.name=name;
-        this.OS=OS;
+
+    User(String name, PrintWriter OS) {
+        this.name = name;
+        this.OS = OS;
     }
 }
