@@ -2,6 +2,11 @@ Chat-room - application for communication between many users
 ============================================================
 Changelog #3: 19.01.2018
 
+- added /help command which shows all possible functions
+
+- Client is now informed of the existence of functions and of all mutes which hold place
+
+
 - Fixed a ~~bug~~ feature where functions '/mute' and '/unmute' self were completely valid options. They are not anymore.
 
 - Extended the password column size in database, from 32 to 64 characters  (to set up a new database, remove the .txt document in your Server directory)

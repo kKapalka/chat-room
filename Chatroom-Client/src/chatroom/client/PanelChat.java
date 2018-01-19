@@ -115,7 +115,12 @@ public class PanelChat extends javax.swing.JPanel {
         if ("/show history".equals(message) || "/hide history".equals(message)) {
             Clear();
             client.SendData("Message" + DELIMITER + username + DELIMITER + message + DELIMITER + client.logintime);
-        } else {
+        } else if("/help".equals(message)){
+            TextAppend("Lista komend: \n /mute <username> - blokuje wiadomości od użytkownika o nazwie <username>"+
+                    "\n /unmute <username> - odblokowuje wiadomosci od uzytkownika o nazwie <username>"+
+                    "\n /show history - wyswietla wszystkie wiadomości wysłane przed zalogowaniem klienta"+
+                    "\n /hide history - ukrywa wszystkie wiadomości wysłane przed zalogowaniem klienta");
+        } else{
             client.SendData("Message" + DELIMITER + username + DELIMITER + message);
         }
 

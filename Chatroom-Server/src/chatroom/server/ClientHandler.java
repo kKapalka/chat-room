@@ -348,8 +348,21 @@ public class ClientHandler implements Runnable {
      * @throws SQLException 
      */
     private void SendChat(String time) throws SQLException {
-        SendToClient("Chat", "Zalogowano");
-        ResultSet rs = parent.SelectFromChat(new String[]{"sendtime >= '" + time + "'"}, login);
+        SendToClient("Chat", "Zalogowano. Aby poznać komendy czatu wpisz /help");
+        ResultSet rs=parent.Select(""+parent.mutes, new String[]{parent.mutes.Get(1)+" LIKE '"+login+"'"},parent.mutes.Get(2));
+        try{
+            Boolean ismuted=false;
+            String mutedUsers="";
+            while (rs.next()){
+                ismuted=true;
+                mutedUsers+=rs.getString(parent.mutes.Get(2))+" ";
+            }
+            if(ismuted) SendToClient("Chat", "Lista zablokowanych uzytkownikow: "+mutedUsers);
+        } catch (NullPointerException ex) {
+            ex.printStackTrace();
+        }
+        
+        rs = parent.SelectFromChat(new String[]{"sendtime >= '" + time + "'"}, login);
         try {
             while (rs.next()) {
                 SendToClient("Chat", rs.getTimestamp(parent.messages.Get(2)).toString(), rs.getString(parent.messages.Get(1)), "  " + rs.getString(parent.messages.Get(3)));
