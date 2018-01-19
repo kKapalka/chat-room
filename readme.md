@@ -2,7 +2,11 @@ Chat-room - application for communication between many users
 ============================================================
 Database info (required for personal use of the app):
 
-Changelog #1: 12.01.2018
+Changelog #2: 19.01.2018
+
+- Server now needs to log in to its database only once. Data is retained after successful login in a file "dbfile.txt", which is in top-most folder of project directory
+
+Changelog #1: 18.01.2018
 
 - Server can now set up its own database. It's achieved through "Po³¹cz z baz¹ danych" button - it prompts to point at the database to use, and provide the login and pass to PostgreSQL admin.
 

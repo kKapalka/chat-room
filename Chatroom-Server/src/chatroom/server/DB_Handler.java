@@ -90,10 +90,10 @@ public class DB_Handler {
         
         statement=conn.createStatement();
         String namecheck=dbname.replaceAll("[^a-z0-9_]","");
-        if(dbname!=namecheck) statement.executeUpdate("CREATE DATABASE \""+dbname+"\";");
+        if(dbname == null ? namecheck != null : !dbname.equals(namecheck)) statement.executeUpdate("CREATE DATABASE \""+dbname+"\";");
         else statement.executeUpdate("CREATE DATABASE "+dbname+";");
         } catch (SQLException ex){
-            ex.printStackTrace();
+            
         }
     }
     private void CreateTables(){

@@ -6,15 +6,19 @@
 package chatroom.server;
 
 import java.awt.Toolkit;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 /**
  * 
@@ -33,15 +37,9 @@ public class ChatroomServer extends javax.swing.JFrame {
     /**
      * URL do bazy danych przechowujacej informacje o czacie
      */
-    String url = "jdbc:postgresql://localhost:5432/chatroomdb";
-    /**
-     * Stala przechowujaca znak stopu miedzy kolejnymi fragmentami przesylanej informacji
-     */
+    
     static final String DELIMITER=";end;";
-    /**
-     * Zmienna przechowujaca dane wlasciciela bazy danych, w celu pomyslnego zalogowania sie do niej
-     */
-    static final String LOGIN="postgres",PASS="poszlaoladoprzedszkola";
+    
     /**
      * Zmienna przechowujaca liste strumieni wyjscia do klientow
      */
@@ -57,8 +55,7 @@ public class ChatroomServer extends javax.swing.JFrame {
     
     DBLogin dialog;
     
-    static final String MES_TAB="messages",MES_ID_COL="id",MES_COL="message",TIME_COL="sendtime",SEND_COL="username";
-    //order: id, username, sendtime, message   
+      
     /**
      * <p>Funkcja tworzy nowy formularz ChatroomServer, i wysrodkowuje go na ekranie</p>
      * <p>Laczy sie automatycznie z baza danych i uruchamia watek ServerStart zbierajacy
@@ -66,10 +63,22 @@ public class ChatroomServer extends javax.swing.JFrame {
      * Jesli polaczenie sie uda, guzik laczenia recznego sie zdezaktywuje.</p>
      */
     public ChatroomServer() {
+        
         initComponents();
         setToMiddle();
-    }
-
+        ArrayList<String> dbdata = new ArrayList<>();
+        try(BufferedReader br = new BufferedReader(new FileReader("dbfile.txt"))) {
+            for(String line; (line = br.readLine()) != null; ) {
+            dbdata.add(line);
+            }
+        handler = new DB_Handler(dbdata.get(0),dbdata.get(1),dbdata.get(2),this);
+        Start();
+        } catch (IOException ex){Launch();
+        } catch (SQLException ex){
+            ServerText.setText("Nie polaczono z baza.\nSpróbuj ponownie");
+        }
+        }
+        
     private void setToMiddle(){
         setLocation((Toolkit.getDefaultToolkit().getScreenSize().width)/2 - getWidth()/2, (Toolkit.getDefaultToolkit().getScreenSize().height)/2 - getHeight()/2);
     }
@@ -142,7 +151,7 @@ public class ChatroomServer extends javax.swing.JFrame {
         dialog.pack();
         dialog.setVisible (true);
         /*DbConnect();
-        Launch.setEnabled(false);
+        
         }catch (SQLException ex){
             ServerText.setText("Nie polaczono z baza.\nSprobuj ponownie");
         }
@@ -151,8 +160,16 @@ public class ChatroomServer extends javax.swing.JFrame {
     }
     public void Start(){
         ServerText.setText("Połączono się z bazą: "+handler.server+handler.dbname+"\n");
+        try{
+        PrintWriter writer = new PrintWriter("dbfile.txt", "UTF-8");
+        writer.println(handler.dbname);
+        writer.println(handler.user);
+        writer.println(handler.pass);
+        writer.close();
+        }catch (Exception ex){}
         Thread starter = new Thread(new ServerStart(this));
         starter.start();
+        Launch.setEnabled(false);
     }
     /**
      * <p>Sluzy do recznego polaczenia z baza danych oraz uruchomienia serwera,
@@ -294,7 +311,7 @@ public class ChatroomServer extends javax.swing.JFrame {
      */
     public ResultSet SelectFromChat(String[] conditions, String user){
         String[] newConditions=new String[conditions.length+1];
-        for(int i=0;i<conditions.length;i++) newConditions[i]=conditions[i];
+        System.arraycopy(conditions, 0, newConditions, 0, conditions.length);
         newConditions[conditions.length]=messages.Get(1)+" NOT IN (SELECT "+mutes.Get(2)+" FROM "+mutes+" WHERE "+mutes.Get(1)+" = '"+user+"')";
         return Select(""+messages,newConditions,"*");
     }
