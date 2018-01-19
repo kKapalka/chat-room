@@ -26,7 +26,6 @@ public class IncomingReader implements Runnable {
     public void run() {
         String[] data;
         String stream;
-        int i = 0;
         try {
             while ((stream = parent.reader.readLine()) != null) {
                 data = stream.split(DELIMITER);
@@ -49,7 +48,7 @@ public class IncomingReader implements Runnable {
                             data[3] = data[3].replace(";apos;", "'");
                         }
                         parent.ChatTextAppend(data);
-                        System.out.println(i++);
+                        
                         break;
                     case "Break":
                         parent.IncomingReader.interrupt();
