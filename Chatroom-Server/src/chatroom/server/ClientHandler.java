@@ -85,7 +85,9 @@ public class ClientHandler implements Runnable {
                         break;
                     case "Login":
                         try {
-                            if (CheckInUser(data[1], Encrypt(data[2]))) {
+                        	if(data.length<3) SendToClient("Error", "DATA_INVALID", "Uzupełnij brakujące pola");
+                            else {
+                            	if (CheckInUser(data[1], Encrypt(data[2]))) {
                                 if (parent.users.contains(new User(data[1], client))) {
                                     SendToClient("Error", "LOGIN_IN_USE", "Użytkownik o takim loginie jest już zalogowany");
                                     SendToClient("Break");
@@ -103,6 +105,7 @@ public class ClientHandler implements Runnable {
                                 SendToClient("Break");
 
                             }
+                        }
                         } catch (NoSuchAlgorithmException | SQLException ex) {
                             ex.printStackTrace();
                             parent.ServerTextAppend("Błąd w sekwencji logowania\n");
