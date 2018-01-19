@@ -1,3 +1,0 @@
-chatroom-db
-postgres
-poszlaoladoprzedszkola
