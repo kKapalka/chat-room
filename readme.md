@@ -17,7 +17,9 @@ Changelog #2: 19.01.2018
 
 - Fixed a bug where non-verified user could log in the chat
 
-- Found a bug where the message extracting query would run multiple times. Severity: minor - causes minor inconveniences
+- Found a bug where the message extracting query would run multiple times. Severity: minor - causes minor inconveniences (Fixed)
+
+- Found a bug where chat displayed through /show history command is inconsistent. Severity: major. Caused by ~~lack of synchronization between functions~~ generation of multiple listener threads on the client side (Fixed)
 
 
 Changelog #1: 18.01.2018

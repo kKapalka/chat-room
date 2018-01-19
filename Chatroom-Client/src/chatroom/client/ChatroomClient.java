@@ -50,7 +50,7 @@ public class ChatroomClient extends javax.swing.JFrame {
     /**
      * Watek nasluchujacy odpowiedzi od serwera
      */
-    Thread IncomingReader;
+    public Thread IncomingReader;
     /**
      * Creates new form ChatroomClient
      */
@@ -133,7 +133,7 @@ public class ChatroomClient extends javax.swing.JFrame {
         if(ServerIsActive()){
             writer.println(message);
             writer.flush();
-            Listen();
+            if(IncomingReader==null)Listen();
         }
     }
     /**

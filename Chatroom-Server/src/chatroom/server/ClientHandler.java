@@ -119,11 +119,12 @@ public class ClientHandler implements Runnable
                             parent.users.remove(new User(data[1],client));
                             break;
                         case "Message": 
-                            if(data.length==3){
+                            if(data.length>=3){
                                 if(HasMore("/mute",data[2]))  Mute(data[2].substring(6));
                                 else if (HasMore("/unmute",data[2])) Unmute(data[2].substring(8));
-                                else if ("/show history".equals(data[2])) SendFullChat();
-                                    else if ("/hide history".equals(data[2])) SendChat(data[3]);
+                                else if ("/show history".equals(data[2])) SendFullChat(data[3]);
+                                else if ("/hide history".equals(data[2])) SendChat(data[3]);
+                                
                                 else if(data[2].substring(0,1).equals("/")) SendToClient("Chat","Niepoprawna komenda");
                                 else{
                                     int new_id=createNewId(""+parent.messages,parent.messages.Get(0));
@@ -245,23 +246,25 @@ public class ClientHandler implements Runnable
         }
         return parent.CheckIn(""+parent.tab_users, conditions);
     }
-    private void SendFullChat() throws SQLException{
-        ResultSet rs=parent.SelectFromChat(new String[]{},login);
+    private void SendFullChat(String time) throws SQLException{
+        ResultSet rs=parent.SelectFromChat(new String[]{"sendtime < '"+time+"'"},login);
         try{
+            int i=0;
         while(rs.next()){
             SendToClient("Chat",rs.getTimestamp(parent.messages.Get(2)).toString(),rs.getString(parent.messages.Get(1)),"  "+rs.getString(parent.messages.Get(3)));    
+            System.out.println(i++);
         }
         }catch (NullPointerException ex){}
-        SendToClient("Chat","Zalogowano");
+        SendChat(time);
     }
     private void SendChat(String time) throws SQLException{
+        SendToClient("Chat","Zalogowano");
         ResultSet rs=parent.SelectFromChat(new String[]{"sendtime >= '"+time+"'"},login);
         try{
         while(rs.next()){
             SendToClient("Chat",rs.getTimestamp(parent.messages.Get(2)).toString(),rs.getString(parent.messages.Get(1)),"  "+rs.getString(parent.messages.Get(3)));    
         }
-        }catch (NullPointerException ex){}
-        SendToClient("Chat","Zalogowano");
+        }catch (NullPointerException ex){ ex.printStackTrace();}      
     }
     private String randomVerifyCode(){
         return Long.toHexString(Double.doubleToLongBits(Math.random())).substring(4,14);

@@ -27,7 +27,7 @@ import java.util.Arrays;
         {
             String[] data;
             String stream;
-
+            int i=0;
             try 
             {
                 while ((stream = parent.reader.readLine()) != null) 
@@ -48,12 +48,15 @@ import java.util.Arrays;
                              parent.logintime=data[1];
                              break;
                          case "Chat":
+                             
                              if(data.length>3) data[3]=data[3].replace(";apos;","'");
                              parent.ChatTextAppend(data);
+                             System.out.println(i++);
                              break;
                          case "Break":
                              parent.IncomingReader.interrupt();
                              parent.server.close();
+                             parent.IncomingReader=null;
                              parent.SwitchPanels("Login");
                              break;
                      }    
