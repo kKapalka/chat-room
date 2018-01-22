@@ -52,7 +52,7 @@ public class LoginPanel extends javax.swing.JPanel {
         setToolTipText("");
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
-        jLabel1.setText("ChatRoom v1.0");
+        jLabel1.setText("ChatRoom v1.4");
 
         jLabel2.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         jLabel2.setText("Login:");
