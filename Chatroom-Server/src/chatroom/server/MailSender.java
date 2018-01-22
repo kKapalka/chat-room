@@ -20,7 +20,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 public class MailSender {
-
+    
     String from, username, password;
 
     MailSender() {
@@ -31,8 +31,9 @@ public class MailSender {
     }
 
     /**
-     * Funkcja ma za zadanie wyslac email na podany adres. Email zawiera kod,
+     * Funkcja ma za zadanie wyslac email z kodem weryfikacyjnym na podany adres. Email zawiera kod,
      * potrzebny do weryfikacji konta.
+     * <p> Funkcja korzysta z JavaMail API
      *
      * @param to email adresata
      * @param code kod weryfikacyjny

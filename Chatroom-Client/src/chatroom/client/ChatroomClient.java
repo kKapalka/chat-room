@@ -102,6 +102,7 @@ public class ChatroomClient extends javax.swing.JFrame {
                 break;
             case "Login":
                 cards.show(getContentPane(), "card2");
+                this.setTitle("Chatroom Client");
                 break;
         }
     }
@@ -162,6 +163,7 @@ public class ChatroomClient extends javax.swing.JFrame {
     private void LoginAs(String login) {
         Chat.setUserName(login);
         this.login = login;
+        setTitle("Chatroom Client - zalogowano jako: "+login);
         Chat.Clear();
     }
 

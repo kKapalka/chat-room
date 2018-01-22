@@ -39,6 +39,7 @@ public class PanelChat extends javax.swing.JPanel {
      */
     public void setUserName(String name) {
         this.username = name;
+        
     }
 
     /**

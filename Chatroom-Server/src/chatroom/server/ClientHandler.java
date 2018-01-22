@@ -211,7 +211,7 @@ public class ClientHandler implements Runnable {
                 String verifyCode = randomVerifyCode();
                 parent.Insert("" + parent.tab_users, "" + createNewId("" + parent.tab_users, parent.tab_users.Get(0)), "'" + data[1] + "'", "'" + Encrypt(data[2]) + "'", "'" + data[3] + "'", "'" + verifyCode + "'", "false");
                 SendToClient("Info", "CODE_SENT", "Kod weryfikacyjny przesłano na e-mail: " + data[3]);
-                if (parent.getMailState())parent.sender.Send(data[3], verifyCode);
+                if (parent.getMailState())ChatroomServer.sender.Send(data[3], verifyCode);
             }
         } catch (NoSuchAlgorithmException | SQLException ex) {
             parent.ServerTextAppend("Błąd w sekwencji rejestracji\n");

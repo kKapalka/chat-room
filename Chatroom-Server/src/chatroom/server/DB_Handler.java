@@ -6,7 +6,7 @@
 package chatroom.server;
 
 /**
- * Klasa obslugujaca bazy danych, Odpowiedzialna za generowanie bazy, zbieranie informacji o bazie, i komunikacje z nia
+ * Klasa odpowiedzialna za generowanie bazy komunikacje i zbieranie informacji
  * @author kkapa
  */
 import java.sql.*;
@@ -19,9 +19,9 @@ public class DB_Handler {
     String server = "jdbc:postgresql://localhost:5432/";
     String dbname = "";
     String user, pass;
-    public Statement statement;
-    public Connection conn;
-    public ResultSet rs;
+    Statement statement;
+    Connection conn;
+    ResultSet rs;
     ChatroomServer parent;
 
     DB_Handler(String server, String user, String pass, ChatroomServer parent) throws SQLException {

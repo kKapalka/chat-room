@@ -1,5 +1,9 @@
 Chat-room - application for communication between many users
 ============================================================
+Changelog #4: 22.01.2018
+
+- Client user can now see who is he logged as: On successful login application title is changed to "Chatroom Client - zalogowano jako <username>". Changes are reversed on logout.
+
 Changelog #3: 19.01.2018
 
 - added /help command which shows all possible functions
