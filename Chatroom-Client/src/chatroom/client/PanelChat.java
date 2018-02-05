@@ -63,6 +63,12 @@ public class PanelChat extends javax.swing.JPanel {
         Chat.setEditable(false);
         jScrollPane1.setViewportView(Chat);
 
+        MessageInput.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                MessageInputKeyTyped(evt);
+            }
+        });
+
         SendButton.setText("Wyślij");
         SendButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -110,6 +116,13 @@ public class PanelChat extends javax.swing.JPanel {
     }//GEN-LAST:event_LogoutActionPerformed
 
     private void SendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SendButtonActionPerformed
+        Send();
+    }//GEN-LAST:event_SendButtonActionPerformed
+
+    private void MessageInputKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_MessageInputKeyTyped
+        if(evt.getKeyChar()=='\n') Send();
+    }//GEN-LAST:event_MessageInputKeyTyped
+    private void Send(){
         client = (ChatroomClient) this.getTopLevelAncestor();
 
         String message = MessageInput.getText().replace("'", ";apos;");
@@ -126,8 +139,7 @@ public class PanelChat extends javax.swing.JPanel {
         }
 
         MessageInput.setText("");
-    }//GEN-LAST:event_SendButtonActionPerformed
-
+    }
     /**
      * Funkcja ma za zadanie wstawić nową linijkę tekstu do czatu oraz
      * przesunięcie karety na sam koniec

@@ -1,5 +1,9 @@
 Chat-room - application for communication between many users
 ============================================================
+Changelog #5: 05.02.2018
+
+- Client can now use "Enter" key to submit his messages (requires the input text field to be highlighted, though)
+
 Changelog #4: 22.01.2018
 
 - Client user can now see who is he logged as: On successful login application title is changed to "Chatroom Client - zalogowano jako <username>". Changes are reversed on logout.
